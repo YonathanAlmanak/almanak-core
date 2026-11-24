@@ -1,0 +1,20 @@
+[Unit]
+Description=Almanak Gunicorn daemon
+After=network.target postgresql.service redis.service
+
+[Service]
+User=almanak
+Group=almanak
+WorkingDirectory=/opt/almanak/current
+EnvironmentFile=/etc/almanak/almanak.env
+ExecStart=/opt/almanak/venv/bin/gunicorn \
+    --workers 3 \
+    --bind 127.0.0.1:8001 \
+    --access-logfile /var/log/almanak/access.log \
+    --error-logfile /var/log/almanak/error.log \
+    config.wsgi:application
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
