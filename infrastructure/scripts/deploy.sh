@@ -2,7 +2,7 @@
 # Déploiement sur /opt/almanak — à lancer en tant qu'almanak ou root
 set -e
 
-REPO="https://github.com/neovillage/almanak-core.git"
+REPO="https://github.com/YonathanAlmanak/almanak-core.git"
 APP_DIR="/opt/almanak"
 VENV="$APP_DIR/venv"
 RELEASE="$APP_DIR/releases/$(date +%Y%m%d_%H%M%S)"

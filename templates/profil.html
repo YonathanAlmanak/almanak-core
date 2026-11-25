@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Mon profil — Almanak{% endblock %}
+{% block content %}
+<h1>Mon profil</h1>
+<p><strong>Nom d'utilisateur :</strong> {{ user.username }}</p>
+<p><strong>Courriel :</strong> {{ user.email }}</p>
+<p><strong>Membre depuis :</strong> {{ user.date_joined|date:"j F Y" }}</p>
+{% endblock %}
