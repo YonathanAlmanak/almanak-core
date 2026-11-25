@@ -1,8 +1,75 @@
 {% extends "base.html" %}
-{% block title %}Mon profil — Almanak{% endblock %}
+{% block title %}Mon Almanak{% endblock %}
+
+{% block extra_head %}
+<style>
+  .almanak-header { margin: 2rem 0 1.5rem; }
+  .almanak-header h1 { margin: 0; font-size: 1.6rem; }
+  .almanak-header .subtitle { color: #666; margin: 0.2rem 0 0; font-size: 0.95rem; }
+
+  .widgets { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem; }
+  @media (max-width: 600px) { .widgets { grid-template-columns: 1fr; } }
+
+  .widget { border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.2rem; background: #fafafa; }
+  .widget h2 { margin: 0 0 1rem; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; color: #444; }
+
+  .card-item { padding: 0.6rem 0; border-bottom: 1px solid #eee; }
+  .card-item:last-child { border-bottom: none; }
+  .card-item .card-title { font-weight: 500; }
+  .card-item .card-desc { font-size: 0.85rem; color: #666; margin-top: 0.2rem; }
+
+  .message-item { padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+  .message-item:last-child { border-bottom: none; }
+  .message-meta { font-size: 0.8rem; color: #888; margin-bottom: 0.2rem; }
+  .message-meta strong { color: #555; }
+  .message-text { font-size: 0.9rem; line-height: 1.4; }
+
+  .widget-vide { color: #999; font-size: 0.9rem; font-style: italic; }
+  .widget-nc { color: #aaa; font-size: 0.85rem; }
+</style>
+{% endblock %}
+
 {% block content %}
-<h1>Mon profil</h1>
-<p><strong>Nom d'utilisateur :</strong> {{ user.username }}</p>
-<p><strong>Courriel :</strong> {{ user.email }}</p>
-<p><strong>Membre depuis :</strong> {{ user.date_joined|date:"j F Y" }}</p>
+<div class="almanak-header">
+  <h1>Mon Almanak</h1>
+  <p class="subtitle">{{ user.get_full_name|default:user.username }} · membre depuis {{ user.date_joined|date:"j F Y" }}</p>
+</div>
+
+<div class="widgets">
+
+  <!-- Widget 1 : Sur la table -->
+  <div class="widget">
+    <h2>Sur la table</h2>
+    {% if sur_la_table is None %}
+      <p class="widget-nc">Connexion Nextcloud non configurée.<br>Ajouter <code>NC_URL</code>, <code>NC_USER</code>, <code>NC_APP_PASSWORD</code> dans <code>/etc/almanak/almanak.env</code>.</p>
+    {% elif sur_la_table %}
+      {% for carte in sur_la_table %}
+        <div class="card-item">
+          <div class="card-title">{{ carte.title }}</div>
+          {% if carte.description %}<div class="card-desc">{{ carte.description }}</div>{% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="widget-vide">Aucune carte sur la table pour l'instant.</p>
+    {% endif %}
+  </div>
+
+  <!-- Widget 2 : Nouvelles du groupe -->
+  <div class="widget">
+    <h2>Nouvelles du groupe</h2>
+    {% if nouvelles_groupe is None %}
+      <p class="widget-nc">Connexion Nextcloud non configurée.</p>
+    {% elif nouvelles_groupe %}
+      {% for msg in nouvelles_groupe %}
+        <div class="message-item">
+          <div class="message-meta"><strong>{{ msg.actor }}</strong> · {{ msg.timestamp }}</div>
+          <div class="message-text">{{ msg.message }}</div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="widget-vide">Aucun message récent.</p>
+    {% endif %}
+  </div>
+
+</div>
 {% endblock %}
