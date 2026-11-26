@@ -2,7 +2,13 @@
 # Déploiement sur /opt/almanak — à lancer en tant qu'almanak ou root
 set -e
 
-REPO="https://github.com/YonathanAlmanak/almanak-core.git"
+# GITHUB_TOKEN doit être défini dans /etc/almanak/almanak.env
+GITHUB_TOKEN="${GITHUB_TOKEN:-}"
+if [ -z "$GITHUB_TOKEN" ]; then
+  echo "ERREUR : GITHUB_TOKEN absent de /etc/almanak/almanak.env"
+  exit 1
+fi
+REPO="https://${GITHUB_TOKEN}@github.com/YonathanAlmanak/almanak-core.git"
 APP_DIR="/opt/almanak"
 VENV="$APP_DIR/venv"
 RELEASE="$APP_DIR/releases/$(date +%Y%m%d_%H%M%S)"
