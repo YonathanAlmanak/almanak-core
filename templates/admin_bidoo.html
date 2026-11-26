@@ -10,46 +10,54 @@ body{font-family:system-ui,sans-serif;background:#f5f0eb;color:#2a1f17;min-heigh
 .topbar{background:#2a1f17;color:#f2e6d2;padding:.7rem 1.2rem;display:flex;align-items:center;justify-content:space-between}
 .topbar-logo{font-size:1rem;font-weight:700;letter-spacing:.06em;color:#e8a948}
 .topbar a{color:#a8916f;text-decoration:none;font-size:.85rem}
-.wrap{max-width:860px;margin:2rem auto;padding:0 1rem 4rem}
+.wrap{max-width:900px;margin:2rem auto;padding:0 1rem 4rem}
 h1{font-size:1.3rem;font-weight:700;margin-bottom:.25rem}
 .sous-titre{font-size:.85rem;color:#a8916f;margin-bottom:2rem}
 
-/* Formulaire création */
-.carte-form{background:#fff;border:1.5px solid #e0d8d0;border-radius:10px;padding:1.2rem 1.4rem;margin-bottom:2rem}
-.carte-form h2{font-size:1rem;font-weight:700;margin-bottom:1rem;color:#2a1f17}
-.row{display:flex;gap:.8rem;flex-wrap:wrap;align-items:flex-end}
-.champ{display:flex;flex-direction:column;gap:.3rem;flex:1;min-width:140px}
-label{font-size:.82rem;font-weight:600;color:#2a1f17}
-input[type=text]{padding:.5rem .7rem;border:1.5px solid #ccc;border-radius:6px;font-size:.93rem;font-family:inherit}
+.carte-form{background:#fff;border:1.5px solid #e0d8d0;border-radius:10px;padding:1.3rem 1.5rem;margin-bottom:2rem}
+.carte-form h2{font-size:1rem;font-weight:700;margin-bottom:1.2rem}
+.form-row{display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-start;margin-bottom:1rem}
+.champ{display:flex;flex-direction:column;gap:.3rem}
+.champ label{font-size:.82rem;font-weight:600}
+input[type=text]{padding:.5rem .7rem;border:1.5px solid #ccc;border-radius:6px;font-size:.93rem;font-family:inherit;width:100%}
 input:focus{outline:none;border-color:#e8a948}
-.btn{padding:.5rem 1.2rem;border:none;border-radius:7px;font-size:.93rem;cursor:pointer;font-family:inherit;font-weight:600;white-space:nowrap}
+.btn{padding:.5rem 1.2rem;border:none;border-radius:7px;font-size:.93rem;cursor:pointer;font-family:inherit;font-weight:600}
 .btn-or{background:#e8a948;color:#2a1f17}.btn-or:hover{background:#d4953a}
-.btn-sm{padding:.3rem .8rem;font-size:.78rem;border-radius:5px;border:1.5px solid #ccc;background:#fff;cursor:pointer;font-family:inherit}
-.btn-sm:hover{border-color:#e8a948;background:#fdf8f0}
-.btn-danger{background:#fde8e8;color:#8b1a1a;border:1.5px solid #f5b7b7}.btn-danger:hover{background:#f9cccc}
+
+/* Sélecteur VIRGA 2×3 */
+.virga-wrap{display:flex;align-items:flex-start;gap:1.2rem;flex-wrap:wrap}
+.virga-groupe{display:flex;flex-direction:column;gap:.3rem}
+.virga-groupe-label{font-size:.72rem;color:#a8916f;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.virga-glyphes-row{display:flex;gap:.4rem}
+.virga-pos{display:flex;flex-direction:column;gap:.3rem}
+.virga-pos-num{font-size:.68rem;color:#a8916f;text-align:center;font-weight:600}
+.g-btn{width:44px;height:44px;border:2px solid #d9cfc5;border-radius:7px;background:#fff;font-size:1.2rem;cursor:pointer;color:#2a1f17;display:flex;align-items:center;justify-content:center;transition:border-color .1s,background .1s}
+.g-btn:hover{border-color:#e8a948;background:#fdf8f0}
+.g-btn.sel{border-color:#e8a948;background:#e8a948;font-weight:700}
+.virga-sep{font-size:1.4rem;color:#d9cfc5;align-self:center;padding-top:1.4rem}
+.virga-apercu{margin-top:.7rem;padding:.4rem .9rem;background:#2a1f17;color:#e8a948;border-radius:6px;font-size:1rem;letter-spacing:.15em;text-align:center;font-weight:700;font-family:monospace;min-height:2.1rem}
+.virga-apercu.incomplet{color:#a8916f;font-size:.8rem;letter-spacing:0;font-style:italic;font-weight:400}
 
 /* Table */
-.section-titre{font-size:.85rem;font-weight:700;color:#a8916f;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.7rem;margin-top:.3rem}
+.section-titre{font-size:.82rem;font-weight:700;color:#a8916f;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem;margin-top:.3rem}
 table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;border:1.5px solid #e0d8d0;margin-bottom:1.5rem}
-th{background:#2a1f17;color:#e8a948;font-size:.78rem;font-weight:700;padding:.55rem .8rem;text-align:left;letter-spacing:.04em}
-td{padding:.55rem .8rem;font-size:.88rem;border-bottom:1px solid #f0ebe4;vertical-align:middle}
+th{background:#2a1f17;color:#e8a948;font-size:.76rem;font-weight:700;padding:.5rem .8rem;text-align:left}
+td{padding:.5rem .8rem;font-size:.86rem;border-bottom:1px solid #f0ebe4;vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr.utilise td{color:#a8916f}
-tr.utilise .virga-code{opacity:.5}
-.badge{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.72rem;font-weight:700;letter-spacing:.04em}
+.badge{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:700}
 .badge-libre{background:#e6f7ee;color:#1a7a3d}
 .badge-utilise{background:#f0ebe4;color:#a8916f}
-.virga-code{font-size:1.1rem;letter-spacing:.15em;font-weight:700;color:#e8a948;font-family:monospace}
-.copier-zone{font-size:.78rem;color:#a8916f;cursor:pointer;text-decoration:underline;white-space:nowrap}
+.virga-code{font-size:1.05rem;letter-spacing:.12em;font-weight:700;color:#e8a948;font-family:monospace}
+.copier-lien{font-size:.78rem;color:#a8916f;cursor:pointer;text-decoration:underline}
 
-/* Auth */
+.flash{background:#e6f7ee;border:1px solid #a3d9b6;color:#1a5c33;padding:.5rem .9rem;border-radius:6px;font-size:.85rem;margin-bottom:1rem}
+.erreur{background:#fde8e8;border:1px solid #f5b7b7;color:#8b1a1a;padding:.5rem .9rem;border-radius:6px;font-size:.85rem;margin-bottom:1rem}
+
 .auth-wrap{max-width:360px;margin:4rem auto;text-align:center}
 .auth-titre{font-size:1.1rem;font-weight:700;margin-bottom:.5rem}
 .auth-sous{font-size:.85rem;color:#a8916f;margin-bottom:1.2rem}
 .auth-form{display:flex;flex-direction:column;gap:.7rem}
-
-.flash{background:#e6f7ee;border:1px solid #a3d9b6;color:#1a5c33;padding:.5rem .9rem;border-radius:6px;font-size:.85rem;margin-bottom:1rem}
-.erreur{background:#fde8e8;border:1px solid #f5b7b7;color:#8b1a1a;padding:.5rem .9rem;border-radius:6px;font-size:.85rem;margin-bottom:1rem}
 </style>
 </head>
 <body>
@@ -60,10 +68,9 @@ tr.utilise .virga-code{opacity:.5}
 <div class="wrap">
 
 {% if not auteur %}
-{# ── Authentification ── #}
 <div class="auth-wrap">
   <div class="auth-titre">Accès réservé</div>
-  <div class="auth-sous">Entre le token d'administration pour gérer les Bidoo.</div>
+  <div class="auth-sous">Token d'administration requis.</div>
   {% if erreur_auth %}<div class="erreur">{{ erreur_auth }}</div>{% endif %}
   <form method="post" class="auth-form">
     {% csrf_token %}
@@ -74,46 +81,55 @@ tr.utilise .virga-code{opacity:.5}
 </div>
 
 {% else %}
-{# ── Interface admin ── #}
 <h1>Registre des Bidoo</h1>
 <p class="sous-titre">{{ nb_total }} Bidoo émis · {{ nb_libres }} libres · {{ nb_utilises }} utilisés</p>
 
 {% if flash %}<div class="flash">{{ flash }}</div>{% endif %}
 {% if erreur %}<div class="erreur">{{ erreur }}</div>{% endif %}
 
-{# Formulaire création #}
 <div class="carte-form">
-  <h2>Émettre un nouveau Bidoo</h2>
-  <form method="post">
+  <h2>Émettre un Bidoo</h2>
+  <form method="post" id="form-creer">
     {% csrf_token %}
     <input type="hidden" name="action" value="creer">
-    <div class="row">
-      <div class="champ">
-        <label for="prenom">Prénom du pionnier</label>
-        <input type="text" id="prenom" name="prenom" placeholder="ex: Marie" required maxlength="40">
-      </div>
-      <div class="champ" style="flex:0 0 auto;min-width:0">
-        <label>&nbsp;</label>
-        <button type="submit" class="btn btn-or">Émettre →</button>
+    <input type="hidden" name="p1" id="p1" value="">
+    <input type="hidden" name="p2" id="p2" value="">
+    <input type="hidden" name="p3" id="p3" value="">
+    <input type="hidden" name="p4" id="p4" value="">
+    <input type="hidden" name="p5" id="p5" value="">
+    <input type="hidden" name="p6" id="p6" value="">
+
+    <div class="form-row">
+      <div class="champ" style="flex:1;min-width:160px">
+        <label>Prénom du pionnier</label>
+        <input type="text" name="prenom" placeholder="ex: Marie" required maxlength="40">
       </div>
     </div>
+
+    <div style="margin-bottom:.6rem">
+      <div style="font-size:.82rem;font-weight:600;margin-bottom:.7rem">Code VIRGA</div>
+      <div class="virga-wrap">
+        <div class="virga-groupe">
+          <div class="virga-groupe-label">Lot</div>
+          <div class="virga-glyphes-row" id="groupe-lot"></div>
+        </div>
+        <div class="virga-sep">·</div>
+        <div class="virga-groupe">
+          <div class="virga-groupe-label">Unité</div>
+          <div class="virga-glyphes-row" id="groupe-unite"></div>
+        </div>
+      </div>
+      <div class="virga-apercu incomplet" id="apercu">Sélectionne les 6 glyphes</div>
+    </div>
+
+    <button type="submit" class="btn btn-or" id="btn-emettre" disabled>Émettre →</button>
   </form>
 </div>
 
-{# Bidoos libres #}
 {% if libres %}
 <div class="section-titre">À remettre ({{ libres|length }})</div>
 <table>
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Code VIRGA</th>
-      <th>Prénom</th>
-      <th>Mot de passe temp.</th>
-      <th>Statut</th>
-      <th>Invitation</th>
-    </tr>
-  </thead>
+  <thead><tr><th>#</th><th>Code VIRGA</th><th>Prénom</th><th>Mot de passe temp.</th><th>Statut</th><th></th></tr></thead>
   <tbody>
   {% for b in libres %}
     <tr>
@@ -122,30 +138,17 @@ tr.utilise .virga-code{opacity:.5}
       <td>{{ b.prenom }}</td>
       <td><code>{{ b.temp_pass }}</code></td>
       <td><span class="badge badge-libre">Libre</span></td>
-      <td>
-        <span class="copier-zone" onclick="copier({{ b.virga }}, '{{ b.prenom }}', '{{ b.code }}', '{{ b.temp_pass }}')">
-          Copier l'invitation
-        </span>
-      </td>
+      <td><span class="copier-lien" onclick="copier('{{ b.prenom }}','{{ b.code }}','{{ b.temp_pass }}')">Copier invitation</span></td>
     </tr>
   {% endfor %}
   </tbody>
 </table>
 {% endif %}
 
-{# Bidoos utilisés #}
 {% if utilises %}
 <div class="section-titre">Utilisés ({{ utilises|length }})</div>
 <table>
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Code VIRGA</th>
-      <th>Prénom</th>
-      <th>Compte créé</th>
-      <th>Statut</th>
-    </tr>
-  </thead>
+  <thead><tr><th>#</th><th>Code VIRGA</th><th>Prénom</th><th>Compte</th><th>Statut</th></tr></thead>
   <tbody>
   {% for b in utilises %}
     <tr class="utilise">
@@ -159,16 +162,66 @@ tr.utilise .virga-code{opacity:.5}
   </tbody>
 </table>
 {% endif %}
-
 {% endif %}
 </div>
 
 <script>
-function copier(num, prenom, code, temp) {
-  const texte = `Bonjour ${prenom} !\n\nTon invitation à rejoindre l'Almanak Néovillage :\n\n• Page d'inscription : https://almanak.neovillage.org/rejoindre/\n• Ton code VIRGA : ${code}\n• Mot de passe temporaire : ${temp}\n\nSuis les étapes sur la page et crée ton espace. À bientôt dans le village !`;
+const GLYPHES = ['∅','|','∧','✕','⊏','⋈'];
+const sel = [null,null,null,null,null,null];
+const IDS = ['p1','p2','p3','p4','p5','p6'];
+
+function construireGroupe(conteneurId, positions) {
+  const cont = document.getElementById(conteneurId);
+  positions.forEach(pos => {
+    const col = document.createElement('div');
+    col.className = 'virga-pos';
+    col.innerHTML = `<div class="virga-pos-num">${pos+1}</div>`;
+    GLYPHES.forEach((g, val) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'g-btn';
+      btn.dataset.pos = pos;
+      btn.dataset.val = val;
+      btn.textContent = g;
+      btn.onclick = () => selGlyphe(pos, val);
+      col.appendChild(btn);
+    });
+    cont.appendChild(col);
+  });
+}
+
+construireGroupe('groupe-lot', [0,1,2]);
+construireGroupe('groupe-unite', [3,4,5]);
+
+function selGlyphe(pos, val) {
+  sel[pos] = val;
+  document.querySelectorAll(`[data-pos="${pos}"]`).forEach(b => b.classList.remove('sel'));
+  document.querySelector(`[data-pos="${pos}"][data-val="${val}"]`).classList.add('sel');
+  document.getElementById(IDS[pos]).value = val;
+  mettreAJourApercu();
+}
+
+function mettreAJourApercu() {
+  const complet = sel.every(v => v !== null);
+  const apercu = document.getElementById('apercu');
+  const lot = sel.slice(0,3).map(v => v === null ? '·' : GLYPHES[v]).join('');
+  const unite = sel.slice(3,6).map(v => v === null ? '·' : GLYPHES[v]).join('');
+  if (complet) {
+    apercu.textContent = lot + ' · ' + unite;
+    apercu.classList.remove('incomplet');
+  } else {
+    apercu.textContent = (lot + ' · ' + unite).replace(/\·(?=\·)/g,'·');
+    apercu.classList.add('incomplet');
+    apercu.textContent = lot + ' · ' + unite;
+  }
+  document.getElementById('btn-emettre').disabled = !complet;
+}
+
+function copier(prenom, code, temp) {
+  const texte = `Bonjour ${prenom} !\n\nTon invitation à rejoindre l'Almanak Néovillage :\n\n• Page : https://almanak.neovillage.org/rejoindre/\n• Code VIRGA : ${code}\n• Mot de passe temporaire : ${temp}\n\nÀ bientôt dans le village !`;
   navigator.clipboard.writeText(texte).then(() => {
     event.target.textContent = '✓ Copié !';
-    setTimeout(() => event.target.textContent = 'Copier l\'invitation', 2000);
+    setTimeout(() => event.target.textContent = 'Copier invitation', 2000);
   });
 }
 </script>

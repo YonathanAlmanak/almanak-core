@@ -108,9 +108,10 @@ def home(request):
 GLYPHES = ['∅', '|', '∧', '✕', '⊏', '⋈']
 CTX_BASE = {"glyphes": GLYPHES}
 
-
-def _virga_num(p1, p2, p3, p4):
-    return p1 * 216 + p2 * 36 + p3 * 6 + p4 + 1
+# VIRGA : 6 positions en 2 groupes de 3 (Lot · Unité), base 6
+# num ∈ [1, 46 656]  (6^6)
+def _virga_num(p1, p2, p3, p4, p5, p6):
+    return p1*7776 + p2*1296 + p3*216 + p4*36 + p5*6 + p6 + 1
 
 
 def rejoindre(request):
@@ -128,15 +129,16 @@ def rejoindre(request):
 
     # ── Étape 1 : vérifier le code VIRGA ─────────────────────────────────────
     if etape == "1":
-        p1, p2, p3, p4 = _int_pos("p1"), _int_pos("p2"), _int_pos("p3"), _int_pos("p4")
+        p1, p2, p3 = _int_pos("p1"), _int_pos("p2"), _int_pos("p3")
+        p4, p5, p6 = _int_pos("p4"), _int_pos("p5"), _int_pos("p6")
 
         def err1(msg):
             return render(request, "rejoindre.html", {**CTX_BASE, "erreur": msg})
 
-        if any(x is None for x in [p1, p2, p3, p4]):
-            return err1("Code VIRGA incomplet — sélectionne les 4 glyphes.")
+        if any(x is None for x in [p1, p2, p3, p4, p5, p6]):
+            return err1("Code VIRGA incomplet — sélectionne les 6 glyphes.")
 
-        num = _virga_num(p1, p2, p3, p4)
+        num = _virga_num(p1, p2, p3, p4, p5, p6)
 
         if not REGISTRE_BIDOO.exists():
             return err1("Registre introuvable — contacter l'administrateur.")
@@ -163,7 +165,7 @@ def rejoindre(request):
 
     try:
         num = int(virga_num_str)
-        assert 1 <= num <= 1296
+        assert 1 <= num <= 46656
     except Exception:
         return render(request, "rejoindre.html", {**CTX_BASE, "erreur": "Session expirée. Recommence depuis le début."})
 
@@ -379,12 +381,15 @@ GLYPHES_VIRGA = ['∅', '|', '∧', '✕', '⊏', '⋈']
 
 def _virga_vers_glyphes(num):
     n = num - 1
-    return ' '.join(GLYPHES_VIRGA[x] for x in [n // 216, (n % 216) // 36, (n % 36) // 6, n % 6])
+    p = [n//7776, (n%7776)//1296, (n%1296)//216, (n%216)//36, (n%36)//6, n%6]
+    lot   = ''.join(GLYPHES_VIRGA[x] for x in p[:3])
+    unite = ''.join(GLYPHES_VIRGA[x] for x in p[3:])
+    return f"{lot} · {unite}"
 
 
 def _prochain_virga(registre):
     utilises = {int(b["virga"]) for b in registre.get("emis", [])}
-    for n in range(1, 1297):
+    for n in range(1, 46657):
         if n not in utilises:
             return n
     return None
@@ -412,18 +417,32 @@ def admin_bidoo(request):
 
         elif action == "creer" and auteur:
             prenom = request.POST.get("prenom", "").strip()[:40]
+
+            def _int_p(key):
+                try:
+                    v = int(request.POST.get(key, ""))
+                    return v if 0 <= v <= 5 else None
+                except (ValueError, TypeError):
+                    return None
+
+            ps = [_int_p(f"p{i}") for i in range(1, 7)]
+
             if not prenom:
                 erreur = "Le prénom est requis."
+            elif any(x is None for x in ps):
+                erreur = "Sélectionne les 6 glyphes du code VIRGA."
             else:
+                p1, p2, p3, p4, p5, p6 = ps
+                num = _virga_num(p1, p2, p3, p4, p5, p6)
                 registre = _lire_json(REGISTRE_BIDOO, {"emis": []})
-                num = _prochain_virga(registre)
-                if num is None:
-                    erreur = "Tous les codes VIRGA sont épuisés (1 296 max)."
+                deja = any(int(b["virga"]) == num for b in registre.get("emis", []))
+                if deja:
+                    erreur = f"Le code {_virga_vers_glyphes(num)} est déjà attribué."
                 else:
                     temp = secrets.token_urlsafe(8)
                     registre["emis"].append({"virga": num, "prenom": prenom, "temp_pass": temp, "utilise": False})
                     _ecrire_json(REGISTRE_BIDOO, registre)
-                    flash = f"Bidoo #{num} créé pour {prenom} · Code : {_virga_vers_glyphes(num)} · Temp : {temp}"
+                    flash = f"Bidoo créé pour {prenom} · Code : {_virga_vers_glyphes(num)} · Temp : {temp}"
 
     registre = _lire_json(REGISTRE_BIDOO, {"emis": []})
     tous = [_enrichir_bidoo(b) for b in registre.get("emis", [])]

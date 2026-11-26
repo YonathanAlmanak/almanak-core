@@ -54,7 +54,7 @@ hr{border:none;border-top:1px solid #e0d8d0;margin:1.4rem 0}
 {% if not prenom %}
   {# Étape 1 : vérifier le Bidoo #}
   <h1>Rejoindre le Néovillage</h1>
-  <p class="sous-titre">Entre les 4 glyphes gravés sur ton Bidoo.</p>
+  <p class="sous-titre">Entre les 6 glyphes de ton code VIRGA (Lot · Unité).</p>
 
   {% if erreur %}
   <div class="erreur">{{ erreur }}</div>
@@ -63,26 +63,27 @@ hr{border:none;border-top:1px solid #e0d8d0;margin:1.4rem 0}
   <form method="post">
     {% csrf_token %}
     <input type="hidden" name="etape" value="1">
+    <input type="hidden" name="p1" id="p1" value="">
+    <input type="hidden" name="p2" id="p2" value="">
+    <input type="hidden" name="p3" id="p3" value="">
+    <input type="hidden" name="p4" id="p4" value="">
+    <input type="hidden" name="p5" id="p5" value="">
+    <input type="hidden" name="p6" id="p6" value="">
 
     <div class="champ">
-      <label>Ton code VIRGA <span class="label-hint">— de gauche à droite</span></label>
-      <div class="virga-grille">
-        {% for i in "0123" %}
-        <div class="virga-pos">
-          <div class="virga-pos-num">{{ forloop.counter }}</div>
-          <div class="virga-glyphes">
-            {% for g in glyphes %}
-            <button type="button" class="g-btn" data-pos="{{ forloop.parentloop.counter0 }}" data-val="{{ forloop.counter0 }}" onclick="selGlyphe({{ forloop.parentloop.counter0 }},{{ forloop.counter0 }})">{{ g }}</button>
-            {% endfor %}
-          </div>
+      <label>Ton code VIRGA <span class="label-hint">— Lot (3 glyphes) · Unité (3 glyphes)</span></label>
+      <div style="display:flex;align-items:flex-start;gap:1rem;flex-wrap:wrap">
+        <div>
+          <div style="font-size:.72rem;color:#a8916f;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">Lot</div>
+          <div class="virga-grille" id="grille-lot"></div>
         </div>
-        {% endfor %}
+        <div style="font-size:1.3rem;color:#d9cfc5;padding-top:1.8rem">·</div>
+        <div>
+          <div style="font-size:.72rem;color:#a8916f;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">Unité</div>
+          <div class="virga-grille" id="grille-unite"></div>
+        </div>
       </div>
-      <div class="virga-apercu incomplet" id="virga-apercu">Sélectionne les 4 glyphes</div>
-      <input type="hidden" name="p1" id="p1" value="">
-      <input type="hidden" name="p2" id="p2" value="">
-      <input type="hidden" name="p3" id="p3" value="">
-      <input type="hidden" name="p4" id="p4" value="">
+      <div class="virga-apercu incomplet" id="virga-apercu">Sélectionne les 6 glyphes</div>
     </div>
 
     <button type="submit" class="btn btn-or" id="btn-verif" disabled>Vérifier mon Bidoo →</button>
@@ -138,7 +139,32 @@ hr{border:none;border-top:1px solid #e0d8d0;margin:1.4rem 0}
 
 <script>
 const GLYPHES = ['∅','|','∧','✕','⊏','⋈'];
-const sel = [null, null, null, null];
+const sel = [null,null,null,null,null,null];
+
+function construireGrille(conteneurId, positions) {
+  const cont = document.getElementById(conteneurId);
+  if (!cont) return;
+  positions.forEach(pos => {
+    const col = document.createElement('div');
+    col.className = 'virga-pos';
+    col.innerHTML = `<div class="virga-pos-num">${pos+1}</div><div class="virga-glyphes"></div>`;
+    const glDiv = col.querySelector('.virga-glyphes');
+    GLYPHES.forEach((g, val) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'g-btn';
+      btn.dataset.pos = pos;
+      btn.dataset.val = val;
+      btn.textContent = g;
+      btn.onclick = () => selGlyphe(pos, val);
+      glDiv.appendChild(btn);
+    });
+    cont.appendChild(col);
+  });
+}
+
+construireGrille('grille-lot', [0,1,2]);
+construireGrille('grille-unite', [3,4,5]);
 
 function selGlyphe(pos, val) {
   sel[pos] = val;
@@ -148,12 +174,10 @@ function selGlyphe(pos, val) {
   const complet = sel.every(v => v !== null);
   const apercu = document.getElementById('virga-apercu');
   if (apercu) {
-    if (complet) {
-      apercu.textContent = sel.map(v => GLYPHES[v]).join(' · ');
-      apercu.classList.remove('incomplet');
-    } else {
-      apercu.textContent = sel.map(v => v === null ? '·' : GLYPHES[v]).join(' · ');
-    }
+    const lot   = sel.slice(0,3).map(v => v===null?'?':GLYPHES[v]).join('');
+    const unite = sel.slice(3,6).map(v => v===null?'?':GLYPHES[v]).join('');
+    apercu.textContent = lot + ' · ' + unite;
+    if (complet) apercu.classList.remove('incomplet');
   }
   const btn = document.getElementById('btn-verif');
   if (btn) btn.disabled = !complet;
