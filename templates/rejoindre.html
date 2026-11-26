@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rejoindre · Almanak</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f0eb;color:#2a1f17;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#2a1f17;color:#f2e6d2;padding:.7rem 1.2rem;display:flex;align-items:center;justify-content:space-between}
+.topbar-logo{font-size:1rem;font-weight:700;letter-spacing:.06em;color:#e8a948}
+.topbar a{color:#a8916f;text-decoration:none;font-size:.85rem}
+.wrap{max-width:480px;margin:2rem auto;padding:0 1rem 3rem;width:100%}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:.3rem}
+.sous-titre{font-size:.88rem;color:#a8916f;margin-bottom:1.5rem}
+.champ{margin-bottom:1.1rem}
+label{display:block;font-size:.88rem;font-weight:600;margin-bottom:.35rem}
+.label-hint{font-size:.78rem;font-weight:400;color:#a8916f}
+input[type=text],input[type=password],input[type=email]{width:100%;padding:.55rem .8rem;border:1.5px solid #ccc;border-radius:6px;font-size:.95rem;font-family:inherit;background:#fff}
+input:focus{outline:none;border-color:#e8a948}
+.btn{width:100%;padding:.65rem;border:none;border-radius:8px;font-size:1rem;cursor:pointer;font-family:inherit;font-weight:600;margin-top:.3rem}
+.btn-or{background:#e8a948;color:#2a1f17}.btn-or:hover{background:#d4953a}
+.btn-or:disabled{background:#d9cfc5;color:#a8916f;cursor:default}
+.erreur{background:#fde8e8;border:1px solid #f5b7b7;color:#8b1a1a;padding:.6rem .8rem;border-radius:6px;font-size:.88rem;margin-bottom:1rem}
+.lien-connexion{text-align:center;margin-top:1.2rem;font-size:.88rem;color:#a8916f}
+.lien-connexion a{color:#2a1f17;font-weight:600}
+hr{border:none;border-top:1px solid #e0d8d0;margin:1.4rem 0}
+
+/* ── Sélecteur VIRGA ── */
+.virga-grille{display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.25rem}
+.virga-pos{flex:0 0 auto;text-align:center}
+.virga-pos-num{font-size:.72rem;color:#a8916f;margin-bottom:.3rem;font-weight:600}
+.virga-glyphes{display:flex;flex-direction:column;gap:.28rem}
+.g-btn{width:50px;height:50px;border:2px solid #d9cfc5;border-radius:8px;background:#fff;font-size:1.3rem;cursor:pointer;transition:border-color .1s,background .1s;color:#2a1f17;display:flex;align-items:center;justify-content:center}
+.g-btn:hover{border-color:#e8a948;background:#fdf8f0}
+.g-btn.sel{border-color:#e8a948;background:#e8a948;color:#2a1f17;font-weight:700}
+.virga-apercu{margin-top:.7rem;padding:.45rem .8rem;background:#2a1f17;color:#e8a948;border-radius:6px;font-size:1rem;letter-spacing:.1em;text-align:center;min-height:2rem;font-weight:600}
+.virga-apercu.incomplet{color:#a8916f;font-size:.82rem;letter-spacing:0;font-style:italic}
+
+/* ── Étape 2 : accueil ── */
+.bonjour{background:#2a1f17;color:#f2e6d2;border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.3rem;text-align:center}
+.bonjour-prenom{font-size:1.4rem;font-weight:700;color:#e8a948}
+.bonjour-texte{font-size:.85rem;color:#a8916f;margin-top:.25rem}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-logo">Almanak · Néovillage</div>
+  <a href="/connexion/">Connexion</a>
+</div>
+
+<div class="wrap">
+
+{% if not prenom %}
+  {# Étape 1 : vérifier le Bidoo #}
+  <h1>Rejoindre le Néovillage</h1>
+  <p class="sous-titre">Entre les 4 glyphes gravés sur ton Bidoo.</p>
+
+  {% if erreur %}
+  <div class="erreur">{{ erreur }}</div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="etape" value="1">
+
+    <div class="champ">
+      <label>Ton code VIRGA <span class="label-hint">— de gauche à droite</span></label>
+      <div class="virga-grille">
+        {% for i in "0123" %}
+        <div class="virga-pos">
+          <div class="virga-pos-num">{{ forloop.counter }}</div>
+          <div class="virga-glyphes">
+            {% for g in glyphes %}
+            <button type="button" class="g-btn" data-pos="{{ forloop.parentloop.counter0 }}" data-val="{{ forloop.counter0 }}" onclick="selGlyphe({{ forloop.parentloop.counter0 }},{{ forloop.counter0 }})">{{ g }}</button>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="virga-apercu incomplet" id="virga-apercu">Sélectionne les 4 glyphes</div>
+      <input type="hidden" name="p1" id="p1" value="">
+      <input type="hidden" name="p2" id="p2" value="">
+      <input type="hidden" name="p3" id="p3" value="">
+      <input type="hidden" name="p4" id="p4" value="">
+    </div>
+
+    <button type="submit" class="btn btn-or" id="btn-verif" disabled>Vérifier mon Bidoo →</button>
+  </form>
+
+{% else %}
+  {# Étape 2 : créer le compte #}
+  <div class="bonjour">
+    <div class="bonjour-prenom">Bonjour, {{ prenom }} !</div>
+    <div class="bonjour-texte">Ton Bidoo est reconnu. Crée maintenant ton espace.</div>
+  </div>
+
+  {% if erreur %}
+  <div class="erreur">{{ erreur }}</div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="etape" value="2">
+    <input type="hidden" name="virga_num" value="{{ virga_num }}">
+
+    <div class="champ">
+      <label for="temp_pass">Mot de passe temporaire <span class="label-hint">— reçu avec ton Bidoo</span></label>
+      <input type="password" id="temp_pass" name="temp_pass" required autocomplete="off">
+    </div>
+
+    <hr>
+
+    <div class="champ">
+      <label for="username">Nom d'utilisateur <span class="label-hint">— ton identifiant dans Almanak</span></label>
+      <input type="text" id="username" name="username" value="{{ username|default:'' }}"
+             pattern="[a-zA-Z0-9_\-]+" minlength="3" maxlength="30" required
+             placeholder="ex: marie-st-charles">
+    </div>
+
+    <div class="champ">
+      <label for="password">Nouveau mot de passe</label>
+      <input type="password" id="password" name="password" minlength="8" required
+             placeholder="8 caractères minimum">
+    </div>
+
+    <div class="champ">
+      <label for="email">Courriel <span class="label-hint">(optionnel — pour récupérer ton mot de passe)</span></label>
+      <input type="email" id="email" name="email" value="{{ email|default:'' }}">
+    </div>
+
+    <button type="submit" class="btn btn-or">Créer mon espace →</button>
+  </form>
+{% endif %}
+
+  <div class="lien-connexion">Déjà un compte ? <a href="/connexion/">Se connecter</a></div>
+</div>
+
+<script>
+const GLYPHES = ['∅','|','∧','✕','⊏','⋈'];
+const sel = [null, null, null, null];
+
+function selGlyphe(pos, val) {
+  sel[pos] = val;
+  document.querySelectorAll('[data-pos="'+pos+'"]').forEach(b => b.classList.remove('sel'));
+  document.querySelector('[data-pos="'+pos+'"][data-val="'+val+'"]').classList.add('sel');
+  document.getElementById('p'+(pos+1)).value = val;
+  const complet = sel.every(v => v !== null);
+  const apercu = document.getElementById('virga-apercu');
+  if (apercu) {
+    if (complet) {
+      apercu.textContent = sel.map(v => GLYPHES[v]).join(' · ');
+      apercu.classList.remove('incomplet');
+    } else {
+      apercu.textContent = sel.map(v => v === null ? '·' : GLYPHES[v]).join(' · ');
+    }
+  }
+  const btn = document.getElementById('btn-verif');
+  if (btn) btn.disabled = !complet;
+}
+</script>
+</body>
+</html>
