@@ -372,8 +372,80 @@ def api_question_repondre(request):
     return JsonResponse({"ok": True})
 
 
+# ── Admin Bidoo ───────────────────────────────────────────────────────────────
+
+GLYPHES_VIRGA = ['∅', '|', '∧', '✕', '⊏', '⋈']
+
+
+def _virga_vers_glyphes(num):
+    n = num - 1
+    return ' '.join(GLYPHES_VIRGA[x] for x in [n // 216, (n % 216) // 36, (n % 36) // 6, n % 6])
+
+
+def _prochain_virga(registre):
+    utilises = {int(b["virga"]) for b in registre.get("emis", [])}
+    for n in range(1, 1297):
+        if n not in utilises:
+            return n
+    return None
+
+
+def _enrichir_bidoo(b):
+    return {**b, "code": _virga_vers_glyphes(int(b["virga"]))}
+
+
+def admin_bidoo(request):
+    auteur = request.session.get("admin_bidoo_ok", False)
+    flash = erreur = erreur_auth = None
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+
+        if action == "auth":
+            token_saisi = request.POST.get("token", "").strip()
+            token_attendu = TOKEN_FILE.read_text().strip() if TOKEN_FILE.exists() else ""
+            if token_saisi and token_saisi == token_attendu:
+                request.session["admin_bidoo_ok"] = True
+                auteur = True
+            else:
+                erreur_auth = "Token incorrect."
+
+        elif action == "creer" and auteur:
+            prenom = request.POST.get("prenom", "").strip()[:40]
+            if not prenom:
+                erreur = "Le prénom est requis."
+            else:
+                registre = _lire_json(REGISTRE_BIDOO, {"emis": []})
+                num = _prochain_virga(registre)
+                if num is None:
+                    erreur = "Tous les codes VIRGA sont épuisés (1 296 max)."
+                else:
+                    temp = secrets.token_urlsafe(8)
+                    registre["emis"].append({"virga": num, "prenom": prenom, "temp_pass": temp, "utilise": False})
+                    _ecrire_json(REGISTRE_BIDOO, registre)
+                    flash = f"Bidoo #{num} créé pour {prenom} · Code : {_virga_vers_glyphes(num)} · Temp : {temp}"
+
+    registre = _lire_json(REGISTRE_BIDOO, {"emis": []})
+    tous = [_enrichir_bidoo(b) for b in registre.get("emis", [])]
+    libres = [b for b in tous if not b.get("utilise")]
+    utilises = [b for b in tous if b.get("utilise")]
+
+    return render(request, "admin_bidoo.html", {
+        "auteur": auteur,
+        "libres": libres,
+        "utilises": utilises,
+        "nb_total": len(tous),
+        "nb_libres": len(libres),
+        "nb_utilises": len(utilises),
+        "flash": flash,
+        "erreur": erreur,
+        "erreur_auth": erreur_auth,
+    })
+
+
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("admin-bidoo/", admin_bidoo, name="admin_bidoo"),
     path("", home, name="home"),
     path("rejoindre/", rejoindre, name="rejoindre"),
     path("connexion/", auth_views.LoginView.as_view(

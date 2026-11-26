@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bidoo — Administration · Almanak</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f0eb;color:#2a1f17;min-height:100vh}
+.topbar{background:#2a1f17;color:#f2e6d2;padding:.7rem 1.2rem;display:flex;align-items:center;justify-content:space-between}
+.topbar-logo{font-size:1rem;font-weight:700;letter-spacing:.06em;color:#e8a948}
+.topbar a{color:#a8916f;text-decoration:none;font-size:.85rem}
+.wrap{max-width:860px;margin:2rem auto;padding:0 1rem 4rem}
+h1{font-size:1.3rem;font-weight:700;margin-bottom:.25rem}
+.sous-titre{font-size:.85rem;color:#a8916f;margin-bottom:2rem}
+
+/* Formulaire création */
+.carte-form{background:#fff;border:1.5px solid #e0d8d0;border-radius:10px;padding:1.2rem 1.4rem;margin-bottom:2rem}
+.carte-form h2{font-size:1rem;font-weight:700;margin-bottom:1rem;color:#2a1f17}
+.row{display:flex;gap:.8rem;flex-wrap:wrap;align-items:flex-end}
+.champ{display:flex;flex-direction:column;gap:.3rem;flex:1;min-width:140px}
+label{font-size:.82rem;font-weight:600;color:#2a1f17}
+input[type=text]{padding:.5rem .7rem;border:1.5px solid #ccc;border-radius:6px;font-size:.93rem;font-family:inherit}
+input:focus{outline:none;border-color:#e8a948}
+.btn{padding:.5rem 1.2rem;border:none;border-radius:7px;font-size:.93rem;cursor:pointer;font-family:inherit;font-weight:600;white-space:nowrap}
+.btn-or{background:#e8a948;color:#2a1f17}.btn-or:hover{background:#d4953a}
+.btn-sm{padding:.3rem .8rem;font-size:.78rem;border-radius:5px;border:1.5px solid #ccc;background:#fff;cursor:pointer;font-family:inherit}
+.btn-sm:hover{border-color:#e8a948;background:#fdf8f0}
+.btn-danger{background:#fde8e8;color:#8b1a1a;border:1.5px solid #f5b7b7}.btn-danger:hover{background:#f9cccc}
+
+/* Table */
+.section-titre{font-size:.85rem;font-weight:700;color:#a8916f;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.7rem;margin-top:.3rem}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;border:1.5px solid #e0d8d0;margin-bottom:1.5rem}
+th{background:#2a1f17;color:#e8a948;font-size:.78rem;font-weight:700;padding:.55rem .8rem;text-align:left;letter-spacing:.04em}
+td{padding:.55rem .8rem;font-size:.88rem;border-bottom:1px solid #f0ebe4;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.utilise td{color:#a8916f}
+tr.utilise .virga-code{opacity:.5}
+.badge{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.72rem;font-weight:700;letter-spacing:.04em}
+.badge-libre{background:#e6f7ee;color:#1a7a3d}
+.badge-utilise{background:#f0ebe4;color:#a8916f}
+.virga-code{font-size:1.1rem;letter-spacing:.15em;font-weight:700;color:#e8a948;font-family:monospace}
+.copier-zone{font-size:.78rem;color:#a8916f;cursor:pointer;text-decoration:underline;white-space:nowrap}
+
+/* Auth */
+.auth-wrap{max-width:360px;margin:4rem auto;text-align:center}
+.auth-titre{font-size:1.1rem;font-weight:700;margin-bottom:.5rem}
+.auth-sous{font-size:.85rem;color:#a8916f;margin-bottom:1.2rem}
+.auth-form{display:flex;flex-direction:column;gap:.7rem}
+
+.flash{background:#e6f7ee;border:1px solid #a3d9b6;color:#1a5c33;padding:.5rem .9rem;border-radius:6px;font-size:.85rem;margin-bottom:1rem}
+.erreur{background:#fde8e8;border:1px solid #f5b7b7;color:#8b1a1a;padding:.5rem .9rem;border-radius:6px;font-size:.85rem;margin-bottom:1rem}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-logo">Almanak · Admin Bidoo</div>
+  <a href="/">← Retour</a>
+</div>
+<div class="wrap">
+
+{% if not auteur %}
+{# ── Authentification ── #}
+<div class="auth-wrap">
+  <div class="auth-titre">Accès réservé</div>
+  <div class="auth-sous">Entre le token d'administration pour gérer les Bidoo.</div>
+  {% if erreur_auth %}<div class="erreur">{{ erreur_auth }}</div>{% endif %}
+  <form method="post" class="auth-form">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="auth">
+    <input type="password" name="token" placeholder="Token admin" autocomplete="off" autofocus>
+    <button type="submit" class="btn btn-or">Entrer →</button>
+  </form>
+</div>
+
+{% else %}
+{# ── Interface admin ── #}
+<h1>Registre des Bidoo</h1>
+<p class="sous-titre">{{ nb_total }} Bidoo émis · {{ nb_libres }} libres · {{ nb_utilises }} utilisés</p>
+
+{% if flash %}<div class="flash">{{ flash }}</div>{% endif %}
+{% if erreur %}<div class="erreur">{{ erreur }}</div>{% endif %}
+
+{# Formulaire création #}
+<div class="carte-form">
+  <h2>Émettre un nouveau Bidoo</h2>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="creer">
+    <div class="row">
+      <div class="champ">
+        <label for="prenom">Prénom du pionnier</label>
+        <input type="text" id="prenom" name="prenom" placeholder="ex: Marie" required maxlength="40">
+      </div>
+      <div class="champ" style="flex:0 0 auto;min-width:0">
+        <label>&nbsp;</label>
+        <button type="submit" class="btn btn-or">Émettre →</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+{# Bidoos libres #}
+{% if libres %}
+<div class="section-titre">À remettre ({{ libres|length }})</div>
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Code VIRGA</th>
+      <th>Prénom</th>
+      <th>Mot de passe temp.</th>
+      <th>Statut</th>
+      <th>Invitation</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for b in libres %}
+    <tr>
+      <td>{{ b.virga }}</td>
+      <td><span class="virga-code">{{ b.code }}</span></td>
+      <td>{{ b.prenom }}</td>
+      <td><code>{{ b.temp_pass }}</code></td>
+      <td><span class="badge badge-libre">Libre</span></td>
+      <td>
+        <span class="copier-zone" onclick="copier({{ b.virga }}, '{{ b.prenom }}', '{{ b.code }}', '{{ b.temp_pass }}')">
+          Copier l'invitation
+        </span>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{# Bidoos utilisés #}
+{% if utilises %}
+<div class="section-titre">Utilisés ({{ utilises|length }})</div>
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Code VIRGA</th>
+      <th>Prénom</th>
+      <th>Compte créé</th>
+      <th>Statut</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for b in utilises %}
+    <tr class="utilise">
+      <td>{{ b.virga }}</td>
+      <td><span class="virga-code">{{ b.code }}</span></td>
+      <td>{{ b.prenom }}</td>
+      <td>{{ b.nc_username|default:"—" }}</td>
+      <td><span class="badge badge-utilise">Utilisé</span></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{% endif %}
+</div>
+
+<script>
+function copier(num, prenom, code, temp) {
+  const texte = `Bonjour ${prenom} !\n\nTon invitation à rejoindre l'Almanak Néovillage :\n\n• Page d'inscription : https://almanak.neovillage.org/rejoindre/\n• Ton code VIRGA : ${code}\n• Mot de passe temporaire : ${temp}\n\nSuis les étapes sur la page et crée ton espace. À bientôt dans le village !`;
+  navigator.clipboard.writeText(texte).then(() => {
+    event.target.textContent = '✓ Copié !';
+    setTimeout(() => event.target.textContent = 'Copier l\'invitation', 2000);
+  });
+}
+</script>
+</body>
+</html>
