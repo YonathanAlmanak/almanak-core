@@ -7,16 +7,31 @@
     <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
     <style>
         body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
-        nav a { margin-right: 1rem; }
+        nav { display: flex; align-items: center; gap: 1.2rem; }
+        nav a { text-decoration: none; color: inherit; }
+        nav a:hover { text-decoration: underline; }
+        .nav-logo { display: flex; align-items: center; gap: .5rem; font-weight: 600; font-size: 1.1rem; margin-right: auto; }
+        .nav-logo svg { flex-shrink: 0; }
+        .btn-deconnexion { background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer; }
+        .btn-deconnexion:hover { text-decoration: underline; }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
     <nav>
-        <a href="/">Almanak</a>
+        <a href="/" class="nav-logo">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="1.5"/>
+                <text x="14" y="19" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="currentColor">A</text>
+            </svg>
+            Almanak
+        </a>
         {% if user.is_authenticated %}
             <a href="/profil/">Mon profil</a>
-            <a href="/deconnexion/">Déconnexion</a>
+            <form method="post" action="/deconnexion/" style="display:inline">
+                {% csrf_token %}
+                <button type="submit" class="btn-deconnexion">Déconnexion</button>
+            </form>
         {% else %}
             <a href="/connexion/">Connexion</a>
         {% endif %}
