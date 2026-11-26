@@ -1,28 +1,228 @@
 {% extends "base.html" %}
 {% block title %}Connexion — Almanak{% endblock %}
+
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #232620;
+    --ink-soft: #5b5c4f;
+    --bg: #efece0;
+    --surface: #f9f7ee;
+    --line: #d9d2ba;
+    --accent: #3b5d42;
+    --accent-soft: #e4ead9;
+    --accent-2: #b96f22;
+    --logo-vert: #2E4A33;
+    --logo-or: #E1A43B;
+  }
+
+  body {
+    background: var(--bg) !important;
+    color: var(--ink) !important;
+    font-family: "Work Sans", system-ui, sans-serif !important;
+  }
+
+  /* Pleine page centrée — masque le contenu hérité de base.html */
+  main { padding: 0; }
+
+  .login-page {
+    min-height: calc(100vh - 60px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem 4rem;
+  }
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(35,38,32,.06), 0 6px 20px rgba(35,38,32,.08);
+    padding: 2.5rem 2rem 2rem;
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+  }
+
+  /* Logo */
+  .login-brand {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .5rem;
+    text-decoration: none;
+    margin-bottom: 1rem;
+  }
+  .login-brand svg {
+    width: 56px; height: 56px;
+  }
+  .lg-trait { fill: none; stroke: var(--logo-vert); stroke-width: 3.6; stroke-miterlimit: 10; }
+  .lg-or    { fill: none; stroke: var(--logo-or);   stroke-width: 3.96; }
+  .lg-noeud { fill: var(--logo-vert); }
+  .login-brand-name {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    color: var(--ink);
+    letter-spacing: .02em;
+  }
+
+  .login-tagline {
+    font-size: .9rem;
+    color: var(--ink-soft);
+    margin: 0 0 1.75rem;
+    line-height: 1.5;
+  }
+
+  /* Bouton Nextcloud (vert Almanak) */
+  .btn-nc {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .6rem;
+    width: 100%;
+    padding: .8rem 1rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: "Work Sans", system-ui, sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background .15s, box-shadow .15s;
+  }
+  .btn-nc:hover {
+    background: #2f4c35;
+    box-shadow: 0 2px 10px rgba(59,93,66,.3);
+  }
+
+  /* Séparateur */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin: 1.5rem 0;
+    color: var(--ink-soft);
+    font-size: .8rem;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+
+  /* Formulaire mot de passe */
+  .login-form label {
+    display: block;
+    text-align: left;
+    font-size: .875rem;
+    color: var(--ink-soft);
+    margin-bottom: 1rem;
+  }
+  .login-form input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: .3rem;
+    padding: .6rem .75rem;
+    font-size: 1rem;
+    font-family: "Work Sans", system-ui, sans-serif;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color .15s;
+  }
+  .login-form input:focus { border-color: var(--accent); }
+  .btn-submit {
+    width: 100%;
+    padding: .7rem;
+    background: var(--ink);
+    color: var(--surface);
+    border: none;
+    border-radius: 8px;
+    font-family: "Work Sans", system-ui, sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: .25rem;
+    transition: background .15s;
+  }
+  .btn-submit:hover { background: var(--ink-soft); }
+
+  .login-error {
+    background: #f9ece0;
+    color: var(--accent-2);
+    border: 1px solid #e8c99a;
+    border-radius: 6px;
+    padding: .5rem .75rem;
+    font-size: .875rem;
+    margin-bottom: 1rem;
+    text-align: left;
+  }
+
+  .login-footer {
+    margin-top: 1.5rem;
+    font-size: .82rem;
+    color: var(--ink-soft);
+  }
+  .login-footer a { color: var(--accent); text-decoration: underline; }
+</style>
+{% endblock %}
+
 {% block content %}
-<h1>Connexion</h1>
+<div class="login-page">
+  <div class="login-card">
 
-<p style="margin-bottom:1.5rem">
-  <a href="/oauth/nextcloud/login/" style="display:inline-block;padding:.6rem 1.4rem;background:#0082c9;color:#fff;border-radius:6px;text-decoration:none;font-size:1rem">
-    ☁ Se connecter avec Neovillage Nextcloud
-  </a>
-</p>
+    <a href="/" class="login-brand">
+      <svg viewBox="0 0 100 100" aria-label="Logo Almanak" role="img">
+        <circle class="lg-trait" cx="50" cy="50" r="47" transform="rotate(-90 50 50)"/>
+        <path class="lg-trait" d="M43.82 10.99A39.5 39.5 0 0 0 13.12 64.16M19.3 74.86A39.5 39.5 0 0 0 80.7 74.86M86.88 64.16A39.5 39.5 0 0 0 56.18 10.99"/>
+        <path class="lg-trait" d="M15.79 69.75L50 10.5L84.21 69.75"/>
+        <path class="lg-trait" d="M25.03 74.75L50 31.5L74.97 74.75"/>
+        <circle class="lg-noeud" cx="50"    cy="10.5"  r="4.14"/>
+        <circle class="lg-noeud" cx="15.79" cy="69.75" r="4.14"/>
+        <circle class="lg-noeud" cx="84.21" cy="69.75" r="4.14"/>
+        <circle class="lg-or"    cx="50"    cy="70.5"  r="9.75" transform="rotate(-90 50 70.5)"/>
+      </svg>
+      <span class="login-brand-name">Almanak</span>
+    </a>
 
-<details style="margin-top:1rem">
-  <summary style="cursor:pointer;color:#666;font-size:.9rem">Connexion par mot de passe</summary>
-  <div style="margin-top:.8rem">
-    {% if form.errors %}
-    <p style="color:red">Identifiants incorrects. Réessaie.</p>
-    {% endif %}
-    <form method="post">
-      {% csrf_token %}
-      <p><label>Courriel ou nom d'utilisateur<br>
-        <input type="text" name="username" autofocus required style="width:100%;max-width:360px;padding:.5rem;font-size:1rem"></label></p>
-      <p><label>Mot de passe<br>
-        <input type="password" name="password" required style="width:100%;max-width:360px;padding:.5rem;font-size:1rem"></label></p>
-      <p><button type="submit" style="padding:.5rem 1.5rem;font-size:1rem;cursor:pointer">Se connecter</button></p>
-    </form>
+    <p class="login-tagline">Ton espace personnel dans le Néovillage.</p>
+
+    <a href="/oauth/nextcloud/login/" class="btn-nc">
+      ☁&thinsp; Se connecter avec Neovillage
+    </a>
+
+    <div class="divider">ou</div>
+
+    <div class="login-form">
+      {% if form.errors %}
+      <div class="login-error">Identifiants incorrects. Réessaie.</div>
+      {% endif %}
+      <form method="post">
+        {% csrf_token %}
+        <label>Nom d'utilisateur
+          <input type="text" name="username" autofocus required autocomplete="username">
+        </label>
+        <label>Mot de passe
+          <input type="password" name="password" required autocomplete="current-password">
+        </label>
+        <button type="submit" class="btn-submit">Se connecter</button>
+      </form>
+    </div>
+
+    <p class="login-footer">
+      Pas encore de compte ?
+      <a href="/rejoindre/">Rejoindre avec un Bidoo</a>
+    </p>
+
   </div>
-</details>
+</div>
 {% endblock %}
