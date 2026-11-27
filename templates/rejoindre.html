@@ -54,7 +54,6 @@ hr{border:none;border-top:1px solid #e0d8d0;margin:1.4rem 0}
 {% if not prenom %}
   {# Étape 1 : vérifier le Bidoo #}
   <h1>Rejoindre le Néovillage</h1>
-  <p class="sous-titre">Entre les 6 glyphes de ton code VIRGA (Lot · Unité).</p>
 
   {% if erreur %}
   <div class="erreur">{{ erreur }}</div>
@@ -71,15 +70,12 @@ hr{border:none;border-top:1px solid #e0d8d0;margin:1.4rem 0}
     <input type="hidden" name="p6" id="p6" value="">
 
     <div class="champ">
-      <label>Ton code VIRGA <span class="label-hint">— Lot (3 glyphes) · Unité (3 glyphes)</span></label>
       <div style="display:flex;align-items:flex-start;gap:1rem;flex-wrap:wrap">
         <div>
-          <div style="font-size:.72rem;color:#a8916f;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">Lot</div>
           <div class="virga-grille" id="grille-lot"></div>
         </div>
-        <div style="font-size:1.3rem;color:#d9cfc5;padding-top:1.8rem">·</div>
+        <div style="font-size:1.3rem;color:#d9cfc5;padding-top:.5rem">·</div>
         <div>
-          <div style="font-size:.72rem;color:#a8916f;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">Unité</div>
           <div class="virga-grille" id="grille-unite"></div>
         </div>
       </div>
@@ -147,7 +143,7 @@ function construireGrille(conteneurId, positions) {
   positions.forEach(pos => {
     const col = document.createElement('div');
     col.className = 'virga-pos';
-    col.innerHTML = `<div class="virga-pos-num">${pos+1}</div><div class="virga-glyphes"></div>`;
+    col.innerHTML = `<div class="virga-glyphes"></div>`;
     const glDiv = col.querySelector('.virga-glyphes');
     GLYPHES.forEach((g, val) => {
       const btn = document.createElement('button');
