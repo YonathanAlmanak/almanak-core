@@ -18,7 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
 from django.conf.urls.static import static
-from profiles.views import profil, voutes, reglages, onboarding, profil_public, pionniers, api_photo_upload, api_banniere_upload
+from profiles.views import profil, voutes, reglages, onboarding, profil_public, pionniers, messages, api_photo_upload, api_banniere_upload
 
 DATA             = Path("/opt/almanak/data")
 APPROUVES        = DATA / "evenements.json"
@@ -504,6 +504,7 @@ urlpatterns = [
     path("profil/", profil, name="profil"),
     path("onboarding/", onboarding, name="onboarding"),
     path("pionniers/", pionniers, name="pionniers"),
+    path("messages/", messages, name="messages"),
     path("p/<str:username>/", profil_public, name="profil_public"),
     path("voutes/", voutes, name="voutes"),
     path("reglages/", reglages, name="reglages"),

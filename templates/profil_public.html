@@ -243,7 +243,11 @@
             <a href="/profil/" class="btn-portrait-primaire">Mon tableau de bord</a>
             <a href="/onboarding/" class="btn-portrait-secondaire">Modifier mon portrait</a>
           {% elif est_connecte %}
-            <a href="{{ talk_salon }}" target="_blank" rel="noopener" class="btn-portrait-primaire">💬 Message</a>
+            {% if talk_dm %}
+            <a href="{{ talk_dm }}" target="_blank" rel="noopener" class="btn-portrait-primaire">💬 Envoyer un message</a>
+            {% else %}
+            <a href="{{ talk_salon }}" target="_blank" rel="noopener" class="btn-portrait-primaire">💬 Salon du groupe</a>
+            {% endif %}
           {% endif %}
           <button class="btn-portrait-secondaire" onclick="partager()">↑ Partager</button>
         </div>

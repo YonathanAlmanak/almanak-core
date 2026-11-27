@@ -100,12 +100,19 @@ def profil_public(request, username):
     profil_obj = _profil(pionnier)
     est_moi = request.user.is_authenticated and request.user == pionnier
     talk_salon = f"{NC_BASE}/call/{PIONNIER_ROOM}"
+    # Lien DM Talk vers ce pionnier (si il a un compte Nextcloud lié)
+    nc_server = profil_obj.nc_server or "atelier.neovillage.org"
+    talk_dm = (
+        f"https://{nc_server}/apps/spreed/?callUser={profil_obj.nc_username}"
+        if profil_obj.nc_username else None
+    )
     return render(request, "profil_public.html", {
         "pionnier": pionnier,
         "profil": profil_obj,
         "est_moi": est_moi,
         "est_connecte": request.user.is_authenticated,
         "talk_salon": talk_salon,
+        "talk_dm": talk_dm,
     })
 
 
@@ -163,6 +170,19 @@ def api_banniere_upload(request):
         return JsonResponse({"erreur": f"Erreur lors de la sauvegarde : {e}"}, status=500)
 
     return JsonResponse({"ok": True, "url": profile.photo_banniere.url})
+
+
+@login_required
+def messages(request):
+    profile = _profil(request.user)
+    nc_server = profile.nc_server or "atelier.neovillage.org"
+    talk_messages_url = f"https://{nc_server}/apps/spreed/#/direct"
+    talk_messages_lien = f"https://{nc_server}/apps/spreed/"
+    return render(request, "messages.html", {
+        "profile": profile,
+        "talk_messages_url": talk_messages_url,
+        "talk_messages_lien": talk_messages_lien,
+    })
 
 
 def pionniers(request):

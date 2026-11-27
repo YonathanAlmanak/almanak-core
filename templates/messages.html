@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Messages — Almanak{% endblock %}
+
+{% block extra_head %}
+<style>
+  .messages-entete {
+    padding: 1.8rem 0 1.4rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 1.6rem;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: .5rem;
+    flex-wrap: wrap;
+  }
+  .messages-titre {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.7rem;
+    font-weight: 600;
+    margin: 0;
+  }
+  .messages-sous-titre {
+    font-size: .82rem;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .talk-cadre-messages {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 240px);
+    min-height: 480px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+
+  .talk-iframe-messages {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+
+  .talk-fallback-messages {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2rem;
+    height: 100%;
+    text-align: center;
+    padding: 2rem;
+  }
+  .talk-fallback-messages p {
+    font-size: .95rem;
+    color: var(--ink-soft);
+    max-width: 400px;
+    margin: 0;
+    line-height: 1.6;
+  }
+  .btn-ouvrir-talk {
+    display: inline-block;
+    padding: .6rem 1.4rem;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 8px;
+    font-size: .9rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .btn-ouvrir-talk:hover { background: #2f4c35; }
+
+  .messages-hint {
+    font-size: .78rem;
+    color: var(--ink-soft);
+    margin-top: .9rem;
+    text-align: center;
+  }
+  .messages-hint a { color: var(--accent); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="messages-entete">
+  <h1 class="messages-titre">Messages</h1>
+  <p class="messages-sous-titre">Conversations Talk · <a href="{{ talk_messages_lien }}" target="_blank" rel="noopener" style="color:var(--accent)">Ouvrir dans Nextcloud →</a></p>
+</div>
+
+<div class="talk-cadre-messages">
+  <iframe
+    id="talk-messages-iframe"
+    class="talk-iframe-messages"
+    src="{{ talk_messages_url }}"
+    allow="camera; microphone; display-capture; autoplay; fullscreen"
+    allowfullscreen
+    title="Messagerie Talk"
+  ></iframe>
+  <div class="talk-fallback-messages" id="talk-messages-fallback">
+    <p>L'interface de messagerie s'ouvre dans Nextcloud.<br>Connecte-toi à Nextcloud pour accéder à tes conversations.</p>
+    <a href="{{ talk_messages_lien }}" target="_blank" rel="noopener" class="btn-ouvrir-talk">
+      Ouvrir la messagerie →
+    </a>
+  </div>
+</div>
+
+<p class="messages-hint">
+  Pour écrire à un pionnier : visite <a href="/pionniers/">son profil</a> et clique « Envoyer un message ».
+</p>
+
+<script>
+(function() {
+  const iframe = document.getElementById('talk-messages-iframe');
+  const fallback = document.getElementById('talk-messages-fallback');
+  const timer = setTimeout(() => {
+    iframe.style.display = 'none';
+    fallback.style.display = 'flex';
+  }, 4000);
+  iframe.addEventListener('load', () => clearTimeout(timer));
+})();
+</script>
+
+{% endblock %}

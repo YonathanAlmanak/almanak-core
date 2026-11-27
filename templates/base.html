@@ -151,6 +151,7 @@
   <nav class="nav-tabs" aria-label="Navigation principale">
     <a href="/profil/"    class="nav-tab {% if request.resolver_match.url_name == 'profil'    %}active{% endif %}">Mon Almanak</a>
     <a href="/pionniers/" class="nav-tab {% if request.resolver_match.url_name == 'pionniers' %}active{% endif %}">Pionniers</a>
+    <a href="/messages/"  class="nav-tab {% if request.resolver_match.url_name == 'messages'  %}active{% endif %}">Messages</a>
     <a href="/voutes/"    class="nav-tab {% if request.resolver_match.url_name == 'voutes'    %}active{% endif %}">Voûtes</a>
     <a href="/reglages/"  class="nav-tab {% if request.resolver_match.url_name == 'reglages'  %}active{% endif %}">Réglages</a>
   </nav>
