@@ -27,6 +27,9 @@ def _profil(user):
     return profile
 
 
+NC_BASE = "https://atelier.neovillage.org"
+
+
 @login_required
 def profil(request):
     profile = _profil(request.user)
@@ -34,6 +37,8 @@ def profil(request):
         "profile": profile,
         "sur_la_table": sur_la_table(),
         "nouvelles_groupe": nouvelles_groupe(PIONNIER_ROOM),
+        "talk_url": f"{NC_BASE}/apps/spreed/#/call/{PIONNIER_ROOM}",
+        "talk_room_lien": f"{NC_BASE}/call/{PIONNIER_ROOM}",
     })
 
 

@@ -136,6 +136,40 @@
   .nc-vide { font-size: .88rem; color: var(--ink-soft); font-style: italic; }
   .nc-indispo { font-size: .82rem; color: var(--ink-soft); }
 
+  /* ── Salon Talk ── */
+  .talk-cadre {
+    position: relative;
+    width: 100%;
+    height: 480px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  @media (max-width: 640px) { .talk-cadre { height: 400px; } }
+
+  .talk-iframe {
+    width: 100%; height: 100%;
+    border: none; display: block;
+  }
+  .talk-fallback {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .8rem;
+    height: 100%;
+    text-align: center;
+    padding: 1.5rem;
+  }
+  .talk-fallback p { font-size: .9rem; color: var(--ink-soft); margin: 0; }
+  .talk-ouvrir {
+    display: inline-block; padding: .4rem 1rem;
+    background: var(--accent); color: #fff; border-radius: 7px;
+    font-size: .88rem; font-weight: 600; text-decoration: none;
+    white-space: nowrap;
+  }
+  .talk-ouvrir:hover { background: #2f4c35; }
+
   /* ── Placeholder "bientôt" ── */
   .placeholder-bientot {
     font-size: .88rem; color: var(--ink-soft);
@@ -235,6 +269,26 @@
     {% endif %}
   </div>
 
+  <!-- ── Salon Talk ── -->
+  <div class="tb-widget tb-widget--plein" id="widget-salon-talk">
+    <h2>Salon Talk</h2>
+    <div class="talk-cadre">
+      <iframe
+        id="talk-iframe"
+        class="talk-iframe"
+        src="{{ talk_url }}"
+        allow="camera; microphone; display-capture; autoplay; fullscreen"
+        allowfullscreen
+        loading="lazy"
+        title="Salon de discussion Néovillage"
+      ></iframe>
+      <div class="talk-fallback" id="talk-fallback">
+        <p>Le salon s'ouvre dans une nouvelle fenêtre.<br>Tu dois être connecté à Nextcloud.</p>
+        <a class="talk-ouvrir" href="{{ talk_room_lien }}" target="_blank" rel="noopener">Ouvrir le salon →</a>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Ma voûte (pont à venir) ── -->
   <div class="tb-widget tb-widget--bientot">
     <h2>Ma voûte</h2>
@@ -329,5 +383,17 @@ function getCsrf() {
 
 chargerQdj();
 chargerBabillard();
+
+/* ── Salon Talk : fallback si l'iframe est bloquée ── */
+(function() {
+  const iframe = document.getElementById('talk-iframe');
+  const fallback = document.getElementById('talk-fallback');
+  // Après 3 s, si l'iframe n'a rien chargé on affiche le bouton
+  const timer = setTimeout(() => {
+    iframe.style.display = 'none';
+    fallback.style.display = 'flex';
+  }, 3000);
+  iframe.addEventListener('load', () => clearTimeout(timer));
+})();
 </script>
 {% endblock %}
