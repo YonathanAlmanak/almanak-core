@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Compléter mon profil — Almanak{% endblock %}
+
+{% block extra_head %}
+<style>
+  .ob-wrap { max-width: 560px; margin: 2.5rem auto 4rem; }
+
+  .ob-progression { margin-bottom: 2rem; }
+  .ob-prog-label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .4rem; }
+  .ob-prog-texte { font-size: .78rem; color: var(--ink-soft); font-weight: 600; text-transform: uppercase; letter-spacing: .07em; }
+  .ob-prog-pct    { font-size: .78rem; color: var(--ink-soft); }
+  .ob-barre { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+  .ob-rempli { height: 100%; background: var(--accent); border-radius: 3px; transition: width .4s; }
+
+  .ob-carte {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 2rem 2.2rem;
+  }
+  .ob-etape-num { font-size: .75rem; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .1em; margin: 0 0 .5rem; }
+  .ob-question  { font-family: "Fraunces", serif; font-size: 1.5rem; font-weight: 600; color: var(--ink); margin: 0 0 .4rem; line-height: 1.3; }
+  .ob-aide      { font-size: .88rem; color: var(--ink-soft); margin: 0 0 1.4rem; }
+
+  .ob-input, .ob-textarea {
+    width: 100%; padding: .65rem .85rem; font-size: 1rem; font-family: inherit;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+    color: var(--ink); outline: none; resize: vertical;
+  }
+  .ob-input:focus, .ob-textarea:focus { border-color: var(--accent); }
+  .ob-textarea { min-height: 120px; }
+
+  .ob-photo-zone {
+    border: 2px dashed var(--line); border-radius: 10px; padding: 2rem;
+    text-align: center; cursor: pointer; transition: border-color .2s;
+  }
+  .ob-photo-zone:hover { border-color: var(--accent); }
+  .ob-photo-zone input { display: none; }
+  .ob-photo-preview { max-width: 160px; max-height: 160px; border-radius: 50%; margin: .8rem auto 0; display: none; border: 2px solid var(--line); }
+  .ob-photo-label { font-size: .9rem; color: var(--ink-soft); }
+
+  .ob-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 1.4rem; }
+  .ob-btn {
+    padding: .6rem 1.4rem; background: var(--accent); color: #fff; border: none;
+    border-radius: 8px; font-family: inherit; font-size: 1rem; font-weight: 600;
+    cursor: pointer;
+  }
+  .ob-btn:hover { background: #2f4c35; }
+  .ob-passer { font-size: .85rem; color: var(--ink-soft); text-decoration: none; }
+  .ob-passer:hover { color: var(--ink); text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ob-wrap">
+
+  <div class="ob-progression">
+    <div class="ob-prog-label">
+      <span class="ob-prog-texte">Ton profil</span>
+      <span class="ob-prog-pct">Question {{ etape }} sur {{ nb_questions }}</span>
+    </div>
+    <div class="ob-barre">
+      <div class="ob-rempli" style="width:{{ progression }}%"></div>
+    </div>
+  </div>
+
+  <div class="ob-carte">
+    <p class="ob-etape-num">Étape {{ etape }} / {{ nb_questions }}</p>
+    <h1 class="ob-question">{{ question.label }}</h1>
+    <p class="ob-aide">{{ question.aide }}</p>
+
+    {% if question.type == "photo" %}
+    <!-- Photo : upload direct vers l'API, puis avancer -->
+    <form id="form-photo" action="/onboarding/" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="etape" value="{{ etape }}">
+      <div class="ob-photo-zone" id="photo-zone" onclick="document.getElementById('photo-input').click()">
+        <label class="ob-photo-label">Clique ici pour choisir une photo</label>
+        <input type="file" id="photo-input" name="photo" accept="image/jpeg,image/png,image/webp">
+        <img class="ob-photo-preview" id="photo-preview" src="" alt="">
+      </div>
+      <div class="ob-actions">
+        <button type="submit" class="ob-btn">Continuer →</button>
+        <a href="/onboarding/?etape={{ etape|add:1 }}" class="ob-passer">Passer pour l'instant</a>
+      </div>
+    </form>
+    <script>
+      document.getElementById('photo-input').addEventListener('change', function() {
+        const f = this.files[0];
+        if (!f) return;
+        const preview = document.getElementById('photo-preview');
+        preview.src = URL.createObjectURL(f);
+        preview.style.display = 'block';
+        document.querySelector('.ob-photo-label').textContent = f.name;
+        // Upload via API for immediate feedback
+        const data = new FormData();
+        data.append('photo', f);
+        fetch('/api/profil/photo/', {
+          method: 'POST',
+          headers: {'X-CSRFToken': document.cookie.split(';').map(c=>c.trim()).find(c=>c.startsWith('csrftoken='))?.split('=')[1]||''},
+          body: data,
+        }).then(r => r.json()).then(d => {
+          if (d.ok) preview.src = d.url;
+        });
+      });
+    </script>
+
+    {% elif question.type == "textarea" %}
+    <form action="/onboarding/" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="etape" value="{{ etape }}">
+      <textarea class="ob-textarea" name="{{ question.champ }}" placeholder="{{ question.aide }}">{{ valeur_courante }}</textarea>
+      <div class="ob-actions">
+        <button type="submit" class="ob-btn">Continuer →</button>
+        <a href="/onboarding/?etape={{ etape|add:1 }}" class="ob-passer">Passer pour l'instant</a>
+      </div>
+    </form>
+
+    {% else %}
+    <form action="/onboarding/" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="etape" value="{{ etape }}">
+      <input class="ob-input" type="text" name="{{ question.champ }}"
+             value="{{ valeur_courante }}"
+             maxlength="{{ question.max|default:200 }}"
+             placeholder="{{ question.aide }}"
+             autofocus>
+      <div class="ob-actions">
+        <button type="submit" class="ob-btn">Continuer →</button>
+        {% if etape > 1 %}
+        <a href="/onboarding/?etape={{ etape|add:-1 }}" class="ob-passer">← Précédent</a>
+        {% else %}
+        <a href="/profil/" class="ob-passer">Revenir au tableau de bord</a>
+        {% endif %}
+      </div>
+    </form>
+    {% endif %}
+
+  </div>
+
+</div>
+{% endblock %}

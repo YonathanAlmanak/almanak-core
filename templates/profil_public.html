@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}{{ profil.nom_artiste|default:pionnier.username }} — Almanak{% endblock %}
+
+{% block nav_tabs %}{% endblock %}
+{% block nav_links %}
+<div class="nav-right">
+  <a href="/connexion/" class="btn-link">Connexion</a>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .vit-hero {
+    text-align: center;
+    padding: 2.5rem 1rem 1.8rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 2rem;
+  }
+  .vit-avatar {
+    width: 120px; height: 120px; border-radius: 50%;
+    object-fit: cover; margin: 0 auto 1.2rem;
+    border: 3px solid var(--line); display: block;
+  }
+  .vit-avatar-defaut {
+    width: 120px; height: 120px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Fraunces", serif; font-size: 2.5rem; font-weight: 600;
+    margin: 0 auto 1.2rem; border: 3px solid var(--line);
+  }
+  .vit-nom    { font-family: "Fraunces", serif; font-size: 2rem; font-weight: 600; margin: 0 0 .3rem; }
+  .vit-village { font-size: .88rem; color: var(--ink-soft); margin: 0 0 .8rem; }
+  .badge-pionnier-pub {
+    display: inline-flex; align-items: center; gap: .3rem;
+    background: var(--or-pale); border: 1px solid #e8d5a3; color: #7a5c1e;
+    border-radius: 999px; padding: .25rem .8rem; font-size: .78rem; font-weight: 600;
+    margin-bottom: 1rem;
+  }
+  .badge-pionnier-pub::before { content: "◆"; font-size: .55rem; }
+  .vit-offre {
+    font-size: 1.1rem; color: var(--ink); max-width: 520px;
+    margin: .8rem auto 0; line-height: 1.5;
+  }
+
+  .vit-corps { max-width: 680px; margin: 0 auto; }
+  .vit-section { margin-bottom: 2rem; }
+  .vit-section h2 {
+    font-size: .72rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--ink-soft); margin: 0 0 .6rem;
+  }
+  .vit-section p { margin: 0; line-height: 1.65; color: var(--ink); }
+
+  .vit-cta {
+    text-align: center; padding: 2rem 1rem;
+    border-top: 1px solid var(--line); margin-top: 2rem;
+  }
+  .vit-cta p { font-size: .92rem; color: var(--ink-soft); margin: 0 0 1rem; }
+  .btn-rejoindre {
+    display: inline-block; padding: .7rem 1.8rem;
+    background: var(--accent); color: #fff; border-radius: 8px;
+    font-weight: 600; font-size: 1rem; text-decoration: none;
+  }
+  .btn-rejoindre:hover { background: #2f4c35; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="vit-hero">
+  {% if profil.photo %}
+    <img class="vit-avatar" src="{{ profil.photo.url }}" alt="Photo de {{ profil.nom_artiste|default:pionnier.username }}">
+  {% else %}
+    <div class="vit-avatar-defaut" aria-hidden="true">{{ profil.nom_artiste|default:pionnier.first_name|default:pionnier.username|first|upper }}</div>
+  {% endif %}
+
+  <h1 class="vit-nom">{{ profil.nom_artiste|default:pionnier.first_name|default:pionnier.username }}</h1>
+  {% if profil.village %}<p class="vit-village">{{ profil.village }}</p>{% endif %}
+  <span class="badge-pionnier-pub">Pionnier Néovillage</span>
+  {% if profil.offre_culturelle %}<p class="vit-offre">{{ profil.offre_culturelle }}</p>{% endif %}
+</div>
+
+<div class="vit-corps">
+  {% if profil.bio_courte %}
+  <div class="vit-section">
+    <h2>Qui je suis</h2>
+    <p>{{ profil.bio_courte }}</p>
+  </div>
+  {% endif %}
+
+  {% if profil.passions %}
+  <div class="vit-section">
+    <h2>Ce qui m'anime</h2>
+    <p>{{ profil.passions }}</p>
+  </div>
+  {% endif %}
+
+  {% if profil.experience %}
+  <div class="vit-section">
+    <h2>Ce que je fais</h2>
+    <p>{{ profil.experience }}</p>
+  </div>
+  {% endif %}
+
+  {% if profil.relations_cherchees %}
+  <div class="vit-section">
+    <h2>Ce que je cherche</h2>
+    <p>{{ profil.relations_cherchees }}</p>
+  </div>
+  {% endif %}
+
+  <div class="vit-cta">
+    <p>Tu veux te connecter avec {{ profil.nom_artiste|default:pionnier.first_name|default:"ce pionnier" }} ou rejoindre Almanak&nbsp;?</p>
+    <a href="/" class="btn-rejoindre">Découvrir Almanak</a>
+  </div>
+</div>
+
+{% endblock %}

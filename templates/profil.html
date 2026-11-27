@@ -8,6 +8,47 @@
     --or: #E1A43B; --or-pale: #fdf6e3;
   }
 
+  /* ── Carte de profil ── */
+  .profil-carte {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1.4rem 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    margin-bottom: 1.4rem;
+  }
+  .profil-avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    object-fit: cover; flex-shrink: 0;
+    border: 2px solid var(--line);
+  }
+  .profil-avatar-defaut {
+    width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Fraunces", serif; font-size: 1.5rem; font-weight: 600;
+    border: 2px solid var(--line);
+  }
+  .profil-info { flex: 1; min-width: 0; }
+  .profil-nom { font-family: "Fraunces", serif; font-size: 1.3rem; font-weight: 600; color: var(--ink); margin: 0 0 .15rem; }
+  .profil-village { font-size: .82rem; color: var(--ink-soft); margin: 0 0 .5rem; }
+  .profil-actions { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; }
+  .profil-lien-public { font-size: .78rem; color: var(--accent); text-decoration: none; }
+  .profil-lien-public:hover { text-decoration: underline; }
+  .profil-progression { margin-top: .4rem; }
+  .progression-label { font-size: .75rem; color: var(--ink-soft); margin-bottom: .25rem; }
+  .progression-barre { height: 5px; background: var(--line); border-radius: 3px; overflow: hidden; }
+  .progression-rempli { height: 100%; background: var(--accent); border-radius: 3px; transition: width .3s; }
+  .btn-onboarding {
+    display: inline-block; padding: .35rem .85rem;
+    background: var(--accent); color: #fff; border-radius: 6px;
+    font-size: .82rem; font-weight: 600; text-decoration: none;
+    white-space: nowrap;
+  }
+  .btn-onboarding:hover { background: #2f4c35; }
+
   /* ── En-tête ── */
   .tb-entete {
     padding: 1.8rem 0 1.4rem;
@@ -109,6 +150,34 @@
 {% endblock %}
 
 {% block content %}
+
+<!-- ── Carte de profil ── -->
+<div class="profil-carte">
+  {% if profile.photo %}
+    <img class="profil-avatar" src="{{ profile.photo.url }}" alt="Photo de {{ profile.nom_artiste|default:user.username }}">
+  {% else %}
+    <div class="profil-avatar-defaut" aria-hidden="true">{{ user.first_name|default:user.username|first|upper }}</div>
+  {% endif %}
+  <div class="profil-info">
+    <p class="profil-nom">{{ profile.nom_artiste|default:user.first_name|default:user.username }}</p>
+    {% if profile.village %}<p class="profil-village">{{ profile.village }}</p>{% endif %}
+    <div class="profil-actions">
+      <a href="/p/{{ user.username }}/" class="profil-lien-public">Voir ma page publique →</a>
+    </div>
+    {% with pct=profile.pourcentage_profil %}
+    {% if pct < 100 %}
+    <div class="profil-progression">
+      <p class="progression-label">Profil à {{ pct }} % — <a href="/onboarding/" class="profil-lien-public">compléter</a></p>
+      <div class="progression-barre"><div class="progression-rempli" style="width:{{ pct }}%"></div></div>
+    </div>
+    {% endif %}
+    {% endwith %}
+  </div>
+  {% if profile.pourcentage_profil < 50 %}
+  <a href="/onboarding/" class="btn-onboarding">Compléter mon profil</a>
+  {% endif %}
+</div>
+
 <div class="tb-entete">
   <h1 class="tb-bonjour">Bonjour, {{ user.first_name|default:user.username }} !</h1>
 </div>

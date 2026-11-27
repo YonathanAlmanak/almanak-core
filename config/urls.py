@@ -16,7 +16,9 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from profiles.views import profil, voutes, reglages
+from django.conf import settings
+from django.conf.urls.static import static
+from profiles.views import profil, voutes, reglages, onboarding, profil_public, api_photo_upload
 
 DATA             = Path("/opt/almanak/data")
 APPROUVES        = DATA / "evenements.json"
@@ -474,8 +476,11 @@ urlpatterns = [
     ), name="connexion"),
     path("deconnexion/", auth_views.LogoutView.as_view(next_page="/connexion/"), name="deconnexion"),
     path("profil/", profil, name="profil"),
+    path("onboarding/", onboarding, name="onboarding"),
+    path("p/<str:username>/", profil_public, name="profil_public"),
     path("voutes/", voutes, name="voutes"),
     path("reglages/", reglages, name="reglages"),
+    path("api/profil/photo/", api_photo_upload),
     # OAuth2
     path("oauth/nextcloud/login/", oauth_nextcloud_login, name="oauth_nextcloud_login"),
     path("oauth/nextcloud/callback/", oauth_nextcloud_callback, name="oauth_nextcloud_callback"),
@@ -490,3 +495,6 @@ urlpatterns = [
     path("api/question-du-jour/", api_question_du_jour),
     path("api/question-du-jour/repondre/", api_question_repondre),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
