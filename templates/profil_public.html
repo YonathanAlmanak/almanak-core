@@ -4,114 +4,322 @@
 {% block nav_tabs %}{% endblock %}
 {% block nav_links %}
 <div class="nav-right">
-  <a href="/connexion/" class="btn-link">Connexion</a>
+  {% if not est_connecte %}
+    <a href="/connexion/" class="btn-link">Connexion</a>
+  {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_head %}
 <style>
-  .vit-hero {
-    text-align: center;
-    padding: 2.5rem 1rem 1.8rem;
-    border-bottom: 1px solid var(--line);
-    margin-bottom: 2rem;
+  :root { --or: #E1A43B; --or-pale: #fdf6e3; }
+
+  /* ── Bannière ── */
+  .portrait-banniere {
+    width: 100%; height: 220px;
+    background: linear-gradient(135deg, #2a4a30 0%, #3b5e42 35%, #5c7c5e 60%, #8aab72 100%);
+    background-size: cover; background-position: center;
+    position: relative; overflow: hidden;
   }
-  .vit-avatar {
-    width: 120px; height: 120px; border-radius: 50%;
-    object-fit: cover; margin: 0 auto 1.2rem;
-    border: 3px solid var(--line); display: block;
+  @media (max-width: 640px) { .portrait-banniere { height: 160px; } }
+
+  .btn-camera {
+    position: absolute;
+    background: rgba(0,0,0,.55); border: 2px solid rgba(255,255,255,.7);
+    border-radius: 50%; width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 1rem; transition: background .15s;
   }
-  .vit-avatar-defaut {
-    width: 120px; height: 120px; border-radius: 50%;
+  .btn-camera:hover { background: rgba(0,0,0,.78); }
+  .btn-camera-banniere { bottom: .75rem; right: .75rem; }
+  .btn-camera-avatar { bottom: 2px; right: 2px; }
+
+  /* ── Conteneur ── */
+  .portrait-wrap { max-width: 980px; margin: 0 auto; padding: 0 1.5rem 3rem; }
+
+  /* ── Héro ── */
+  .portrait-hero {
+    display: flex; align-items: flex-end; gap: 1.4rem;
+    padding-bottom: 1.5rem; border-bottom: 1px solid var(--line); margin-bottom: 2rem;
+  }
+  .portrait-avatar-wrap { margin-top: -52px; flex-shrink: 0; position: relative; }
+  .portrait-avatar {
+    width: 130px; height: 130px; border-radius: 50%;
+    object-fit: cover; border: 4px solid var(--surface);
+    box-shadow: 0 4px 14px rgba(0,0,0,.12);
+  }
+  .portrait-avatar-defaut {
+    width: 130px; height: 130px; border-radius: 50%;
     background: var(--accent); color: #fff;
     display: flex; align-items: center; justify-content: center;
-    font-family: "Fraunces", serif; font-size: 2.5rem; font-weight: 600;
-    margin: 0 auto 1.2rem; border: 3px solid var(--line);
+    font-family: "Fraunces", serif; font-size: 3rem; font-weight: 600;
+    border: 4px solid var(--surface); box-shadow: 0 4px 14px rgba(0,0,0,.12);
   }
-  .vit-nom    { font-family: "Fraunces", serif; font-size: 2rem; font-weight: 600; margin: 0 0 .3rem; }
-  .vit-village { font-size: .88rem; color: var(--ink-soft); margin: 0 0 .8rem; }
-  .badge-pionnier-pub {
+  .portrait-ident { flex: 1; padding-bottom: .4rem; min-width: 0; }
+  .portrait-nom {
+    font-family: "Fraunces", serif; font-size: 1.9rem; font-weight: 600;
+    color: var(--ink); margin: 0 0 .3rem; line-height: 1.1;
+  }
+  .portrait-lieu {
+    display: flex; align-items: center; gap: .35rem;
+    font-size: .88rem; color: var(--ink-soft); margin: 0;
+  }
+  .portrait-lieu::before { content: "📍"; font-size: .8rem; }
+  @media (max-width: 540px) {
+    .portrait-hero { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .portrait-avatar-wrap { margin-top: -44px; }
+    .portrait-avatar, .portrait-avatar-defaut { width: 108px; height: 108px; font-size: 2.4rem; }
+    .portrait-nom { font-size: 1.55rem; }
+  }
+
+  /* ── Corps deux colonnes ── */
+  .portrait-corps { display: grid; grid-template-columns: 1fr 280px; gap: 2.4rem; align-items: start; }
+  @media (max-width: 720px) { .portrait-corps { grid-template-columns: 1fr; } .portrait-sidebar { order: -1; } }
+
+  /* ── Accroche ── */
+  .portrait-accroche {
+    background: var(--accent-soft); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 1rem 1.2rem; margin-bottom: 2rem;
+    font-family: "Fraunces", serif; font-style: italic; font-size: 1.05rem; line-height: 1.6; color: var(--ink);
+  }
+
+  /* ── Tags ── */
+  .portrait-tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 2rem; }
+  .portrait-tag {
+    background: var(--accent-soft); color: var(--accent);
+    border-radius: 999px; padding: .28rem .8rem; font-size: .77rem; font-weight: 500;
+  }
+
+  /* ── Sections narratives ── */
+  .portrait-section { margin-bottom: 2.2rem; }
+  .portrait-section-label {
+    font-size: .68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .13em; color: var(--ink-soft);
+    padding-bottom: .55rem; border-bottom: 1px solid var(--line);
+    margin-bottom: 1.2rem; display: block;
+  }
+  .portrait-about-bloc { margin-bottom: 1.5rem; }
+  .portrait-about-bloc h3 {
+    font-size: .78rem; font-weight: 700; color: var(--accent);
+    text-transform: uppercase; letter-spacing: .06em; margin: 0 0 .45rem;
+  }
+  .portrait-about-bloc p, .portrait-section > p {
+    margin: 0; line-height: 1.75; color: var(--ink); font-size: .95rem;
+  }
+
+  /* ── Sidebar ── */
+  .portrait-sidebar { position: sticky; top: 1.2rem; }
+  .sidebar-carte {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 1.3rem 1.4rem; margin-bottom: 1.2rem;
+  }
+  .badge-pionnier {
     display: inline-flex; align-items: center; gap: .3rem;
     background: var(--or-pale); border: 1px solid #e8d5a3; color: #7a5c1e;
-    border-radius: 999px; padding: .25rem .8rem; font-size: .78rem; font-weight: 600;
-    margin-bottom: 1rem;
+    border-radius: 999px; padding: .3rem .9rem; font-size: .78rem; font-weight: 600;
+    margin-bottom: 1.1rem;
   }
-  .badge-pionnier-pub::before { content: "◆"; font-size: .55rem; }
-  .vit-offre {
-    font-size: 1.1rem; color: var(--ink); max-width: 520px;
-    margin: .8rem auto 0; line-height: 1.5;
+  .badge-pionnier::before { content: "◆"; font-size: .55rem; }
+  .sidebar-actions { display: flex; flex-direction: column; gap: .6rem; }
+  .btn-portrait-primaire {
+    display: flex; align-items: center; justify-content: center; gap: .4rem;
+    padding: .65rem 1rem; background: var(--accent); color: #fff;
+    border-radius: 8px; font-size: .88rem; font-weight: 600;
+    text-decoration: none; border: none; cursor: pointer; font-family: inherit;
   }
-
-  .vit-corps { max-width: 680px; margin: 0 auto; }
-  .vit-section { margin-bottom: 2rem; }
-  .vit-section h2 {
-    font-size: .72rem; font-weight: 600; text-transform: uppercase;
-    letter-spacing: .1em; color: var(--ink-soft); margin: 0 0 .6rem;
+  .btn-portrait-primaire:hover { background: #2f4c35; }
+  .btn-portrait-secondaire {
+    display: flex; align-items: center; justify-content: center; gap: .4rem;
+    padding: .6rem 1rem; background: transparent; color: var(--ink);
+    border-radius: 8px; font-size: .88rem; font-weight: 500;
+    text-decoration: none; border: 1px solid var(--line); cursor: pointer; font-family: inherit;
+    width: 100%;
   }
-  .vit-section p { margin: 0; line-height: 1.65; color: var(--ink); }
-
-  .vit-cta {
-    text-align: center; padding: 2rem 1rem;
-    border-top: 1px solid var(--line); margin-top: 2rem;
-  }
-  .vit-cta p { font-size: .92rem; color: var(--ink-soft); margin: 0 0 1rem; }
+  .btn-portrait-secondaire:hover { background: var(--bg); }
+  .sidebar-cta p { font-size: .85rem; color: var(--ink-soft); margin: 0 0 .9rem; line-height: 1.5; }
   .btn-rejoindre {
-    display: inline-block; padding: .7rem 1.8rem;
+    display: block; padding: .65rem 1rem;
     background: var(--accent); color: #fff; border-radius: 8px;
-    font-weight: 600; font-size: 1rem; text-decoration: none;
+    font-weight: 600; font-size: .9rem; text-decoration: none; text-align: center;
   }
   .btn-rejoindre:hover { background: #2f4c35; }
+
+  /* ── Message upload ── */
+  .upload-msg {
+    font-size: .78rem; color: var(--ink-soft); font-style: italic;
+    margin-top: .4rem; min-height: 1.1rem;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<div class="vit-hero">
-  {% if profil.photo %}
-    <img class="vit-avatar" src="{{ profil.photo.url }}" alt="Photo de {{ profil.nom_artiste|default:pionnier.username }}">
-  {% else %}
-    <div class="vit-avatar-defaut" aria-hidden="true">{{ profil.nom_artiste|default:pionnier.first_name|default:pionnier.username|first|upper }}</div>
+<!-- ── Bannière ── -->
+<div class="portrait-banniere" id="banniere-el"
+  {% if profil.photo_banniere %}style="background-image: url('{{ profil.photo_banniere.url }}')"{% endif %}>
+  {% if est_moi %}
+    <button class="btn-camera btn-camera-banniere" onclick="document.getElementById('input-banniere').click()" title="Modifier la bannière">📷</button>
+    <input type="file" id="input-banniere" accept="image/jpeg,image/png,image/webp" style="display:none">
   {% endif %}
-
-  <h1 class="vit-nom">{{ profil.nom_artiste|default:pionnier.first_name|default:pionnier.username }}</h1>
-  {% if profil.village %}<p class="vit-village">{{ profil.village }}</p>{% endif %}
-  <span class="badge-pionnier-pub">Pionnier Néovillage</span>
-  {% if profil.offre_culturelle %}<p class="vit-offre">{{ profil.offre_culturelle }}</p>{% endif %}
 </div>
 
-<div class="vit-corps">
-  {% if profil.bio_courte %}
-  <div class="vit-section">
-    <h2>Qui je suis</h2>
-    <p>{{ profil.bio_courte }}</p>
-  </div>
-  {% endif %}
+<div class="portrait-wrap">
 
-  {% if profil.passions %}
-  <div class="vit-section">
-    <h2>Ce qui m'anime</h2>
-    <p>{{ profil.passions }}</p>
+  <!-- ── Héro ── -->
+  <div class="portrait-hero">
+    <div class="portrait-avatar-wrap">
+      {% if profil.photo %}
+        <img class="portrait-avatar" src="{{ profil.photo.url }}" alt="Photo de {{ profil.nom_artiste|default:pionnier.username }}" id="avatar-img">
+      {% else %}
+        <div class="portrait-avatar-defaut" id="avatar-defaut">{{ profil.nom_artiste|default:pionnier.first_name|default:pionnier.username|first|upper }}</div>
+      {% endif %}
+      {% if est_moi %}
+        <button class="btn-camera btn-camera-avatar" onclick="document.getElementById('input-photo').click()" title="Modifier la photo">📷</button>
+        <input type="file" id="input-photo" accept="image/jpeg,image/png,image/webp" style="display:none">
+      {% endif %}
+    </div>
+    <div class="portrait-ident">
+      <h1 class="portrait-nom">{{ profil.nom_artiste|default:pionnier.first_name|default:pionnier.username }}</h1>
+      {% if profil.village %}<p class="portrait-lieu">{{ profil.village }}</p>{% endif %}
+    </div>
   </div>
-  {% endif %}
 
-  {% if profil.experience %}
-  <div class="vit-section">
-    <h2>Ce que je fais</h2>
-    <p>{{ profil.experience }}</p>
-  </div>
-  {% endif %}
+  <!-- ── Corps ── -->
+  <div class="portrait-corps">
 
-  {% if profil.relations_cherchees %}
-  <div class="vit-section">
-    <h2>Ce que je cherche</h2>
-    <p>{{ profil.relations_cherchees }}</p>
-  </div>
-  {% endif %}
+    <!-- Colonne principale -->
+    <div>
 
-  <div class="vit-cta">
-    <p>Tu veux te connecter avec {{ profil.nom_artiste|default:pionnier.first_name|default:"ce pionnier" }} ou rejoindre Almanak&nbsp;?</p>
-    <a href="/" class="btn-rejoindre">Découvrir Almanak</a>
+      {% if profil.offre_culturelle %}
+      <div class="portrait-accroche">{{ profil.offre_culturelle }}</div>
+      {% endif %}
+
+      {% if profil.bio_courte or profil.experience or profil.passions %}
+      <div class="portrait-section">
+        <span class="portrait-section-label">À propos</span>
+
+        {% if profil.bio_courte %}
+        <div class="portrait-about-bloc">
+          <h3>Parcours</h3>
+          <p>{{ profil.bio_courte }}</p>
+        </div>
+        {% endif %}
+
+        {% if profil.experience %}
+        <div class="portrait-about-bloc">
+          <h3>Ce que j'apporte</h3>
+          <p>{{ profil.experience }}</p>
+        </div>
+        {% endif %}
+
+        {% if profil.passions %}
+        <div class="portrait-about-bloc">
+          <h3>Ce qui m'anime</h3>
+          <p>{{ profil.passions }}</p>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% if profil.relations_cherchees %}
+      <div class="portrait-section">
+        <span class="portrait-section-label">Ce que je cherche</span>
+        <p>{{ profil.relations_cherchees }}</p>
+      </div>
+      {% endif %}
+
+      {% if not profil.bio_courte and not profil.passions and not profil.experience and not profil.offre_culturelle and not profil.relations_cherchees %}
+      <p style="color:var(--ink-soft);font-size:.9rem;font-style:italic;">Ce pionnier n'a pas encore complété son portrait.</p>
+      {% endif %}
+
+    </div>
+
+    <!-- Sidebar -->
+    <div class="portrait-sidebar">
+      <div class="sidebar-carte">
+        <div class="badge-pionnier">Pionnier Néovillage</div>
+        <div class="sidebar-actions">
+          {% if est_moi %}
+            <a href="/profil/" class="btn-portrait-primaire">Mon tableau de bord</a>
+            <a href="/onboarding/" class="btn-portrait-secondaire">Modifier mon portrait</a>
+          {% elif est_connecte %}
+            <a href="{{ talk_salon }}" target="_blank" rel="noopener" class="btn-portrait-primaire">💬 Message</a>
+          {% endif %}
+          <button class="btn-portrait-secondaire" onclick="partager()">↑ Partager</button>
+        </div>
+        {% if est_moi %}
+          <p class="upload-msg" id="msg-upload"></p>
+        {% endif %}
+      </div>
+
+      {% if not est_connecte %}
+      <div class="sidebar-carte sidebar-cta">
+        <p>Tu veux te connecter avec {{ profil.nom_artiste|default:pionnier.first_name|default:"ce pionnier" }} ou rejoindre Almanak ?</p>
+        <a href="/" class="btn-rejoindre">Rejoindre Almanak →</a>
+      </div>
+      {% endif %}
+    </div>
+
   </div>
 </div>
 
+<script>
+function getCsrf() {
+  return document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('csrftoken='))?.split('=')[1] || '';
+}
+
+function partager() {
+  const url = window.location.href;
+  if (navigator.share) {
+    navigator.share({ title: document.title, url });
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(url);
+    afficherMsg('Lien copié !');
+  }
+}
+
+function afficherMsg(txt) {
+  const el = document.getElementById('msg-upload');
+  if (el) { el.textContent = txt; setTimeout(() => el.textContent = '', 3000); }
+}
+
+{% if est_moi %}
+document.getElementById('input-photo').addEventListener('change', async function() {
+  if (!this.files[0]) return;
+  const fd = new FormData();
+  fd.append('photo', this.files[0]);
+  afficherMsg('Envoi en cours…');
+  const r = await fetch('/api/profil/photo/', { method: 'POST', headers: {'X-CSRFToken': getCsrf()}, body: fd });
+  const d = await r.json();
+  if (d.ok) {
+    afficherMsg('Photo mise à jour ✓');
+    const img = document.getElementById('avatar-img');
+    const def = document.getElementById('avatar-defaut');
+    if (img) img.src = d.url + '?t=' + Date.now();
+    else if (def) {
+      const newImg = document.createElement('img');
+      newImg.className = 'portrait-avatar'; newImg.id = 'avatar-img'; newImg.src = d.url;
+      def.replaceWith(newImg);
+    }
+  } else {
+    afficherMsg(d.erreur || 'Erreur lors de l\'envoi');
+  }
+});
+
+document.getElementById('input-banniere').addEventListener('change', async function() {
+  if (!this.files[0]) return;
+  const fd = new FormData();
+  fd.append('banniere', this.files[0]);
+  afficherMsg('Envoi en cours…');
+  const r = await fetch('/api/profil/banniere/', { method: 'POST', headers: {'X-CSRFToken': getCsrf()}, body: fd });
+  const d = await r.json();
+  if (d.ok) {
+    afficherMsg('Bannière mise à jour ✓');
+    document.getElementById('banniere-el').style.backgroundImage = `url('${d.url}?t=${Date.now()}')`;
+  } else {
+    afficherMsg(d.erreur || 'Erreur lors de l\'envoi');
+  }
+});
+{% endif %}
+</script>
 {% endblock %}

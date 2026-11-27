@@ -19,6 +19,7 @@ class UserProfile(models.Model):
 
     # Champs de profil public (alimentent la vitrine /p/<username>/)
     photo = models.ImageField(upload_to='photos/', blank=True)
+    photo_banniere = models.ImageField(upload_to='bannieres/', blank=True)
     nom_artiste = models.CharField(max_length=100, blank=True)
     village = models.CharField(max_length=100, blank=True)
     bio_courte = models.CharField(max_length=280, blank=True)

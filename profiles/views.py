@@ -86,9 +86,14 @@ def onboarding(request):
 def profil_public(request, username):
     pionnier = get_object_or_404(User, username=username)
     profil_obj = _profil(pionnier)
+    est_moi = request.user.is_authenticated and request.user == pionnier
+    talk_salon = f"{NC_BASE}/call/{PIONNIER_ROOM}"
     return render(request, "profil_public.html", {
         "pionnier": pionnier,
         "profil": profil_obj,
+        "est_moi": est_moi,
+        "est_connecte": request.user.is_authenticated,
+        "talk_salon": talk_salon,
     })
 
 
@@ -118,6 +123,34 @@ def api_photo_upload(request):
         return JsonResponse({"erreur": f"Erreur lors de la sauvegarde : {e}"}, status=500)
 
     return JsonResponse({"ok": True, "url": profile.photo.url})
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_banniere_upload(request):
+    if "banniere" not in request.FILES:
+        return JsonResponse({"erreur": "Aucune image"}, status=400)
+
+    fichier = request.FILES["banniere"]
+
+    types_autorises = {"image/jpeg", "image/png", "image/webp"}
+    if fichier.content_type not in types_autorises:
+        return JsonResponse({"erreur": "Format non accepté (JPEG, PNG ou WebP)"}, status=400)
+
+    if fichier.size > 8 * 1024 * 1024:
+        return JsonResponse({"erreur": "Image trop lourde (8 Mo max)"}, status=400)
+
+    profile = _profil(request.user)
+    if profile.photo_banniere:
+        profile.photo_banniere.delete(save=False)
+
+    profile.photo_banniere = fichier
+    try:
+        profile.save()
+    except Exception as e:
+        return JsonResponse({"erreur": f"Erreur lors de la sauvegarde : {e}"}, status=500)
+
+    return JsonResponse({"ok": True, "url": profile.photo_banniere.url})
 
 
 @login_required

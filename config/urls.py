@@ -18,7 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
 from django.conf.urls.static import static
-from profiles.views import profil, voutes, reglages, onboarding, profil_public, api_photo_upload
+from profiles.views import profil, voutes, reglages, onboarding, profil_public, api_photo_upload, api_banniere_upload
 
 DATA             = Path("/opt/almanak/data")
 APPROUVES        = DATA / "evenements.json"
@@ -481,6 +481,7 @@ urlpatterns = [
     path("voutes/", voutes, name="voutes"),
     path("reglages/", reglages, name="reglages"),
     path("api/profil/photo/", api_photo_upload),
+    path("api/profil/banniere/", api_banniere_upload),
     # OAuth2
     path("oauth/nextcloud/login/", oauth_nextcloud_login, name="oauth_nextcloud_login"),
     path("oauth/nextcloud/callback/", oauth_nextcloud_callback, name="oauth_nextcloud_callback"),
