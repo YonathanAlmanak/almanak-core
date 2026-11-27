@@ -18,7 +18,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
 from django.conf.urls.static import static
-from profiles.views import profil, voutes, reglages, onboarding, profil_public, pionniers, messages, api_photo_upload, api_banniere_upload
+from profiles.views import (
+    profil, voutes, reglages, onboarding, profil_public,
+    pionniers, messages, notifications, api_notifs_lues,
+    api_photo_upload, api_banniere_upload,
+)
 
 DATA             = Path("/opt/almanak/data")
 APPROUVES        = DATA / "evenements.json"
@@ -280,12 +284,15 @@ def oauth_nextcloud_callback(request):
     if not username:
         return HttpResponse("Identifiant Nextcloud manquant. <a href='/'>Retour</a>", status=500)
     from profiles.models import UserProfile
-    user, _ = User.objects.get_or_create(username=username,
-                                          defaults={"email": email, "first_name": display_name})
+    from profiles.views import notifier_nouveau_pionnier
+    user, created = User.objects.get_or_create(username=username,
+                                               defaults={"email": email, "first_name": display_name})
     profile, _ = UserProfile.objects.get_or_create(user=user)
     if not profile.nc_username:
         profile.nc_username = username
         profile.save()
+    if created:
+        notifier_nouveau_pionnier(user)
     auth_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
     return redirect("/profil/")
 
@@ -505,6 +512,8 @@ urlpatterns = [
     path("onboarding/", onboarding, name="onboarding"),
     path("pionniers/", pionniers, name="pionniers"),
     path("messages/", messages, name="messages"),
+    path("notifications/", notifications, name="notifications"),
+    path("api/notifications/lues/", api_notifs_lues),
     path("p/<str:username>/", profil_public, name="profil_public"),
     path("voutes/", voutes, name="voutes"),
     path("reglages/", reglages, name="reglages"),

@@ -113,6 +113,22 @@
       text-decoration: none;
     }
     .btn-link:hover { color: var(--ink); text-decoration: underline; }
+    .nav-cloche {
+      position: relative;
+      display: flex; align-items: center;
+      text-decoration: none; color: var(--ink-soft);
+      font-size: 1.1rem; padding: .2rem;
+      transition: color .15s;
+    }
+    .nav-cloche:hover { color: var(--ink); }
+    .nav-badge {
+      position: absolute; top: -3px; right: -5px;
+      background: #c0392b; color: #fff;
+      border-radius: 999px; font-size: .6rem;
+      font-weight: 700; min-width: 16px; height: 16px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 3px; line-height: 1;
+    }
 
     /* ── Contenu ── */
     .site-content {
@@ -161,6 +177,12 @@
   {% block nav_links %}
   {% if user.is_authenticated %}
   <div class="nav-right">
+    <a href="/notifications/" class="nav-cloche" title="Notifications" aria-label="Notifications">
+      🔔
+      {% if nb_notifications > 0 %}
+      <span class="nav-badge">{{ nb_notifications }}</span>
+      {% endif %}
+    </a>
     {% if user_profile.role == 'superadmin' %}
     <span class="badge-pionnier badge-superadmin">Superadmin</span>
     {% elif user_profile.role == 'admin' %}

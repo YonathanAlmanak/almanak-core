@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.http import require_http_methods
 
 from config.nextcloud import nouvelles_groupe, sur_la_table
-from .models import UserProfile
+from .models import UserProfile, Notification
 
 PIONNIER_ROOM = "b5zpbo3j"
 
@@ -31,6 +31,20 @@ NC_BASE = "https://atelier.neovillage.org"
 
 
 VOUTE_STRUCTURE = ["Inbox", "Projets", "Casquettes", "Ressources", "Archives"]
+
+
+def notifier_nouveau_pionnier(nouveau_user):
+    profile = UserProfile.objects.filter(user=nouveau_user).first()
+    nom = (profile.nom_artiste if profile and profile.nom_artiste
+           else nouveau_user.first_name or nouveau_user.username)
+    village = f" de {profile.village}" if profile and profile.village else ""
+    texte = f"{nom}{village} a rejoint le réseau."
+    lien = f"/p/{nouveau_user.username}/"
+    autres = User.objects.exclude(pk=nouveau_user.pk).filter(is_active=True)
+    Notification.objects.bulk_create([
+        Notification(user=u, type=Notification.NOUVEAU_PIONNIER, texte=texte, lien=lien)
+        for u in autres
+    ])
 
 
 @login_required
@@ -100,12 +114,27 @@ def profil_public(request, username):
     profil_obj = _profil(pionnier)
     est_moi = request.user.is_authenticated and request.user == pionnier
     talk_salon = f"{NC_BASE}/call/{PIONNIER_ROOM}"
-    # Lien DM Talk vers ce pionnier (si il a un compte Nextcloud lié)
     nc_server = profil_obj.nc_server or "atelier.neovillage.org"
     talk_dm = (
         f"https://{nc_server}/apps/spreed/?callUser={profil_obj.nc_username}"
         if profil_obj.nc_username else None
     )
+    # Passions comme liste de tags (séparées par virgule ou retour à la ligne)
+    import re as _re
+    passions_tags = []
+    if profil_obj.passions:
+        raw = profil_obj.passions.strip()
+        passions_tags = [t.strip() for t in _re.split(r'[,\n]', raw) if t.strip()][:10]
+    # Autres pionniers du même village
+    meme_village = []
+    if profil_obj.village:
+        meme_village = (
+            UserProfile.objects
+            .filter(village__iexact=profil_obj.village)
+            .exclude(user=pionnier)
+            .select_related("user")
+            .order_by("-id")[:4]
+        )
     return render(request, "profil_public.html", {
         "pionnier": pionnier,
         "profil": profil_obj,
@@ -113,6 +142,8 @@ def profil_public(request, username):
         "est_connecte": request.user.is_authenticated,
         "talk_salon": talk_salon,
         "talk_dm": talk_dm,
+        "passions_tags": passions_tags,
+        "meme_village": meme_village,
     })
 
 
@@ -170,6 +201,21 @@ def api_banniere_upload(request):
         return JsonResponse({"erreur": f"Erreur lors de la sauvegarde : {e}"}, status=500)
 
     return JsonResponse({"ok": True, "url": profile.photo_banniere.url})
+
+
+@login_required
+def notifications(request):
+    notifs = Notification.objects.filter(user=request.user).order_by('-created')[:50]
+    # Marquer toutes comme lues à la visite
+    Notification.objects.filter(user=request.user, lu=False).update(lu=True)
+    return render(request, "notifications.html", {"notifs": notifs})
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_notifs_lues(request):
+    Notification.objects.filter(user=request.user, lu=False).update(lu=True)
+    return JsonResponse({"ok": True})
 
 
 @login_required

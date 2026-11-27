@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 
 class UserProfile(models.Model):
@@ -47,3 +48,25 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"Profil de {self.user.username} ({self.role})"
+
+
+class Notification(models.Model):
+    NOUVEAU_PIONNIER = 'nouveau_pionnier'
+    BABILLARD = 'babillard'
+    TYPE_CHOICES = [
+        (NOUVEAU_PIONNIER, 'Nouveau pionnier'),
+        (BABILLARD, 'Babillard'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    type = models.CharField(max_length=30, choices=TYPE_CHOICES, default=NOUVEAU_PIONNIER)
+    texte = models.CharField(max_length=255)
+    lien = models.CharField(max_length=255, blank=True)
+    lu = models.BooleanField(default=False)
+    created = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['-created']
+
+    def __str__(self):
+        return f"[{self.type}] {self.user.username} — {self.texte[:60]}"

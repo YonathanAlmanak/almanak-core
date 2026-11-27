@@ -144,6 +144,37 @@
   }
   .btn-rejoindre:hover { background: #2f4c35; }
 
+  /* ── Pionniers du village ── */
+  .portrait-village-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--line);
+  }
+  .village-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: .9rem;
+  }
+  .village-carte {
+    display: flex; flex-direction: column; align-items: center; gap: .5rem;
+    padding: 1rem .8rem; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; text-decoration: none; color: inherit;
+    text-align: center; transition: border-color .12s;
+  }
+  .village-carte:hover { border-color: var(--accent); }
+  .village-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    object-fit: cover; border: 2px solid var(--line);
+  }
+  .village-avatar-defaut {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Fraunces", serif; font-size: 1.3rem; font-weight: 600;
+  }
+  .village-nom { font-size: .88rem; font-weight: 600; }
+  .village-bio { font-size: .78rem; color: var(--ink-soft); line-height: 1.4; }
+
   /* ── Message upload ── */
   .upload-msg {
     font-size: .78rem; color: var(--ink-soft); font-style: italic;
@@ -212,7 +243,16 @@
         </div>
         {% endif %}
 
-        {% if profil.passions %}
+        {% if passions_tags %}
+        <div class="portrait-about-bloc">
+          <h3>Ce qui m'anime</h3>
+          <div class="portrait-tags">
+            {% for tag in passions_tags %}
+            <span class="portrait-tag">{{ tag }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% elif profil.passions %}
         <div class="portrait-about-bloc">
           <h3>Ce qui m'anime</h3>
           <p>{{ profil.passions }}</p>
@@ -264,7 +304,31 @@
       {% endif %}
     </div>
 
+  {% if meme_village %}
+  <!-- ── Pionniers du même village ── -->
+  <div class="portrait-village-section">
+    <span class="portrait-section-label" style="display:block;margin-bottom:1rem;">
+      Autres pionniers de {{ profil.village }}
+    </span>
+    <div class="village-grille">
+      {% for p in meme_village %}
+      <a class="village-carte" href="/p/{{ p.user.username }}/">
+        {% if p.photo %}
+          <img class="village-avatar" src="{{ p.photo.url }}" alt="">
+        {% else %}
+          <div class="village-avatar village-avatar-defaut">
+            {{ p.nom_artiste|default:p.user.first_name|default:p.user.username|first|upper }}
+          </div>
+        {% endif %}
+        <div class="village-nom">{{ p.nom_artiste|default:p.user.first_name|default:p.user.username }}</div>
+        {% if p.bio_courte %}<div class="village-bio">{{ p.bio_courte|truncatechars:60 }}</div>{% endif %}
+      </a>
+      {% endfor %}
+    </div>
   </div>
+{% endif %}
+
+</div>
 </div>
 
 <script>

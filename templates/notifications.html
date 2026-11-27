@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Notifications — Almanak{% endblock %}
+
+{% block extra_head %}
+<style>
+  .notifs-entete {
+    padding: 1.8rem 0 1.4rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 1.6rem;
+  }
+  .notifs-titre {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.7rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .notifs-liste {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
+
+  .notif-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: .9rem 1.1rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: border-color .12s;
+  }
+  .notif-item:hover { border-color: var(--accent); }
+  .notif-item.non-lue { background: var(--accent-soft); border-color: #b6d4ba; }
+
+  .notif-icone {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .9rem;
+    flex-shrink: 0;
+  }
+  .notif-icone.babillard { background: #5b5c4f; }
+
+  .notif-corps { flex: 1; min-width: 0; }
+  .notif-texte { font-size: .9rem; margin: 0 0 .15rem; line-height: 1.4; }
+  .notif-date { font-size: .75rem; color: var(--ink-soft); margin: 0; }
+
+  .notifs-vide {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--ink-soft);
+    font-size: .9rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notifs-entete">
+  <h1 class="notifs-titre">Notifications</h1>
+</div>
+
+{% if notifs %}
+<div class="notifs-liste">
+  {% for n in notifs %}
+  {% if n.lien %}
+  <a class="notif-item {% if not n.lu %}non-lue{% endif %}" href="{{ n.lien }}">
+  {% else %}
+  <div class="notif-item {% if not n.lu %}non-lue{% endif %}">
+  {% endif %}
+
+    <div class="notif-icone {% if n.type == 'babillard' %}babillard{% endif %}">
+      {% if n.type == 'nouveau_pionnier' %}🌱
+      {% elif n.type == 'babillard' %}💬
+      {% else %}🔔
+      {% endif %}
+    </div>
+
+    <div class="notif-corps">
+      <p class="notif-texte">{{ n.texte }}</p>
+      <p class="notif-date">{{ n.created|date:"j N H:i" }}</p>
+    </div>
+
+  {% if n.lien %}</a>{% else %}</div>{% endif %}
+  {% endfor %}
+</div>
+{% else %}
+<div class="notifs-vide">
+  <p>Aucune notification pour l'instant.</p>
+</div>
+{% endif %}
+
+{% endblock %}
