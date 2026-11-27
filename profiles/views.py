@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.http import require_http_methods
 
 from config.nextcloud import nouvelles_groupe, sur_la_table
-from .models import UserProfile, Notification
+from .models import UserProfile, Notification, Vouch
 
 PIONNIER_ROOM = "b5zpbo3j"
 
@@ -31,6 +31,13 @@ NC_BASE = "https://atelier.neovillage.org"
 
 
 VOUTE_STRUCTURE = ["Inbox", "Projets", "Casquettes", "Ressources", "Archives"]
+
+
+def _notifier(destinataires, type_notif, texte, lien=""):
+    Notification.objects.bulk_create([
+        Notification(user=u, type=type_notif, texte=texte, lien=lien)
+        for u in destinataires
+    ])
 
 
 def notifier_nouveau_pionnier(nouveau_user):
@@ -135,6 +142,14 @@ def profil_public(request, username):
             .select_related("user")
             .order_by("-id")[:4]
         )
+    # Vouches
+    vouches = Vouch.objects.filter(cible=pionnier).select_related("source__profile")[:8]
+    nb_vouches = Vouch.objects.filter(cible=pionnier).count()
+    j_ai_vouche = (
+        request.user.is_authenticated
+        and not est_moi
+        and Vouch.objects.filter(source=request.user, cible=pionnier).exists()
+    )
     return render(request, "profil_public.html", {
         "pionnier": pionnier,
         "profil": profil_obj,
@@ -144,6 +159,9 @@ def profil_public(request, username):
         "talk_dm": talk_dm,
         "passions_tags": passions_tags,
         "meme_village": meme_village,
+        "vouches": vouches,
+        "nb_vouches": nb_vouches,
+        "j_ai_vouche": j_ai_vouche,
     })
 
 
@@ -216,6 +234,37 @@ def notifications(request):
 def api_notifs_lues(request):
     Notification.objects.filter(user=request.user, lu=False).update(lu=True)
     return JsonResponse({"ok": True})
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_vouch(request, username):
+    cible = get_object_or_404(User, username=username)
+    if cible == request.user:
+        return JsonResponse({"erreur": "Tu ne peux pas te voucher toi-même."}, status=400)
+    vouch, created = Vouch.objects.get_or_create(source=request.user, cible=cible)
+    if created:
+        # Notifier la cible
+        profil_source = _profil(request.user)
+        nom = profil_source.nom_artiste or request.user.first_name or request.user.username
+        village = f" de {profil_source.village}" if profil_source.village else ""
+        texte = f"{nom}{village} a confirmé sa confiance en toi."
+        lien = f"/p/{request.user.username}/"
+        Notification.objects.create(
+            user=cible, type=Notification.NOUVEAU_PIONNIER,
+            texte=texte, lien=lien,
+        )
+    nb = Vouch.objects.filter(cible=cible).count()
+    return JsonResponse({"ok": True, "cree": created, "nb_vouches": nb})
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_unvouch(request, username):
+    cible = get_object_or_404(User, username=username)
+    Vouch.objects.filter(source=request.user, cible=cible).delete()
+    nb = Vouch.objects.filter(cible=cible).count()
+    return JsonResponse({"ok": True, "nb_vouches": nb})
 
 
 @login_required

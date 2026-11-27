@@ -70,3 +70,18 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"[{self.type}] {self.user.username} — {self.texte[:60]}"
+
+
+class Vouch(models.Model):
+    """Un pionnier confirme sa confiance envers un autre (1 seul vouch par paire)."""
+    source = models.ForeignKey(User, on_delete=models.CASCADE, related_name='vouches_donnes')
+    cible = models.ForeignKey(User, on_delete=models.CASCADE, related_name='vouches_recus')
+    message = models.CharField(max_length=280, blank=True)
+    created = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ('source', 'cible')
+        ordering = ['-created']
+
+    def __str__(self):
+        return f"{self.source.username} → {self.cible.username}"

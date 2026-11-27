@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 from profiles.views import (
     profil, voutes, reglages, onboarding, profil_public,
     pionniers, messages, notifications, api_notifs_lues,
+    api_vouch, api_unvouch,
     api_photo_upload, api_banniere_upload,
 )
 
@@ -371,6 +372,19 @@ def api_babillard(request):
         data["posts"].insert(0, post)
         data["posts"] = data["posts"][:200]
         _ecrire_json(BABILLARD_FILE, data)
+        # Notifier les autres membres
+        from profiles.models import Notification
+        nom_display = request.user.first_name or request.user.username
+        extrait = texte[:80] + ("…" if len(texte) > 80 else "")
+        autres = User.objects.exclude(pk=request.user.pk).filter(is_active=True)
+        Notification.objects.bulk_create([
+            Notification(
+                user=u, type=Notification.BABILLARD,
+                texte=f"{nom_display} sur le babillard : « {extrait} »",
+                lien="/profil/#widget-babillard",
+            )
+            for u in autres
+        ])
         return JsonResponse({"ok": True, "post": post})
     return JsonResponse({"erreur": "Méthode non supportée"}, status=405)
 
@@ -514,6 +528,8 @@ urlpatterns = [
     path("messages/", messages, name="messages"),
     path("notifications/", notifications, name="notifications"),
     path("api/notifications/lues/", api_notifs_lues),
+    path("api/vouch/<str:username>/", api_vouch, name="api_vouch"),
+    path("api/unvouch/<str:username>/", api_unvouch, name="api_unvouch"),
     path("p/<str:username>/", profil_public, name="profil_public"),
     path("voutes/", voutes, name="voutes"),
     path("reglages/", reglages, name="reglages"),

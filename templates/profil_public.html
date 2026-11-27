@@ -175,6 +175,42 @@
   .village-nom { font-size: .88rem; font-weight: 600; }
   .village-bio { font-size: .78rem; color: var(--ink-soft); line-height: 1.4; }
 
+  /* ── Bouton vouch ── */
+  .btn-vouch {
+    display: flex; align-items: center; justify-content: center; gap: .4rem;
+    padding: .6rem 1rem; background: transparent; color: var(--accent);
+    border-radius: 8px; font-size: .88rem; font-weight: 600;
+    border: 1.5px solid var(--accent); cursor: pointer; font-family: inherit;
+    width: 100%; transition: background .15s, color .15s;
+  }
+  .btn-vouch:hover { background: var(--accent-soft); }
+  .btn-vouch--actif {
+    background: var(--accent-soft); color: var(--accent);
+    border-color: var(--accent);
+  }
+  .btn-vouch--chargement { opacity: .6; pointer-events: none; }
+
+  /* ── Carte des vouches ── */
+  .vouch-carte { padding: 1rem 1.2rem; }
+  .vouch-titre { font-size: .82rem; color: var(--ink-soft); margin-bottom: .8rem; line-height: 1.4; }
+  .vouch-compteur { font-size: 1.5rem; font-weight: 700; color: var(--ink); font-family: "Fraunces", serif; }
+  .vouch-avatars {
+    display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .6rem;
+  }
+  .vouch-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    object-fit: cover; border: 2px solid var(--surface);
+    box-shadow: 0 1px 4px rgba(0,0,0,.1); transition: transform .12s;
+  }
+  .vouch-avatar:hover { transform: scale(1.12); }
+  .vouch-avatar-defaut {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Fraunces", serif; font-size: .85rem; font-weight: 600;
+    border: 2px solid var(--surface); box-shadow: 0 1px 4px rgba(0,0,0,.1);
+  }
+
   /* ── Message upload ── */
   .upload-msg {
     font-size: .78rem; color: var(--ink-soft); font-style: italic;
@@ -288,6 +324,11 @@
             {% else %}
             <a href="{{ talk_salon }}" target="_blank" rel="noopener" class="btn-portrait-primaire">💬 Salon du groupe</a>
             {% endif %}
+            <button class="btn-vouch {% if j_ai_vouche %}btn-vouch--actif{% endif %}"
+                    id="btn-vouch"
+                    onclick="toggleVouch()">
+              <span id="vouch-texte">{% if j_ai_vouche %}✓ Tu as vouchi{% else %}✦ Vouch{% endif %}</span>
+            </button>
           {% endif %}
           <button class="btn-portrait-secondaire" onclick="partager()">↑ Partager</button>
         </div>
@@ -295,6 +336,33 @@
           <p class="upload-msg" id="msg-upload"></p>
         {% endif %}
       </div>
+
+      <!-- ── Compteur de vouches ── -->
+      {% if nb_vouches > 0 or est_connecte %}
+      <div class="sidebar-carte vouch-carte">
+        <div class="vouch-titre">
+          <span class="vouch-compteur" id="vouch-compteur">{{ nb_vouches }}</span>
+          vouch{% if nb_vouches != 1 %}es{% endif %} de confiance
+        </div>
+        {% if vouches %}
+        <div class="vouch-avatars">
+          {% for v in vouches %}
+            {% with vp=v.source.profile %}
+            <a href="/p/{{ v.source.username }}/" title="{{ vp.nom_artiste|default:v.source.username }}">
+              {% if vp.photo %}
+                <img class="vouch-avatar" src="{{ vp.photo.url }}" alt="">
+              {% else %}
+                <div class="vouch-avatar vouch-avatar-defaut">
+                  {{ vp.nom_artiste|default:v.source.first_name|default:v.source.username|first|upper }}
+                </div>
+              {% endif %}
+            </a>
+            {% endwith %}
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
 
       {% if not est_connecte %}
       <div class="sidebar-carte sidebar-cta">
@@ -304,8 +372,14 @@
       {% endif %}
     </div>
 
-  {% if meme_village %}
-  <!-- ── Pionniers du même village ── -->
+  </div>
+  <!-- fin portrait-corps -->
+
+</div>
+<!-- fin portrait-wrap -->
+
+{% if meme_village %}
+<div class="portrait-wrap" style="padding-top:0">
   <div class="portrait-village-section">
     <span class="portrait-section-label" style="display:block;margin-bottom:1rem;">
       Autres pionniers de {{ profil.village }}
@@ -326,10 +400,8 @@
       {% endfor %}
     </div>
   </div>
+</div>
 {% endif %}
-
-</div>
-</div>
 
 <script>
 function getCsrf() {
@@ -350,6 +422,29 @@ function afficherMsg(txt) {
   const el = document.getElementById('msg-upload');
   if (el) { el.textContent = txt; setTimeout(() => el.textContent = '', 3000); }
 }
+
+{% if est_connecte and not est_moi %}
+let _jaiVouche = {{ j_ai_vouche|yesno:"true,false" }};
+async function toggleVouch() {
+  const btn = document.getElementById('btn-vouch');
+  const texte = document.getElementById('vouch-texte');
+  const compteur = document.getElementById('vouch-compteur');
+  btn.classList.add('btn-vouch--chargement');
+  const url = _jaiVouche ? '/api/unvouch/{{ pionnier.username }}/' : '/api/vouch/{{ pionnier.username }}/';
+  try {
+    const r = await fetch(url, { method: 'POST', headers: {'X-CSRFToken': getCsrf()} });
+    const d = await r.json();
+    if (d.ok) {
+      _jaiVouche = !_jaiVouche;
+      btn.classList.toggle('btn-vouch--actif', _jaiVouche);
+      texte.textContent = _jaiVouche ? '✓ Tu as vouchi' : '✦ Vouch';
+      if (compteur) compteur.textContent = d.nb_vouches;
+    }
+  } finally {
+    btn.classList.remove('btn-vouch--chargement');
+  }
+}
+{% endif %}
 
 {% if est_moi %}
 document.getElementById('input-photo').addEventListener('change', async function() {
