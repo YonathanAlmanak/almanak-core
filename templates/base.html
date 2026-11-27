@@ -149,9 +149,10 @@
   {% block nav_tabs %}
   {% if user.is_authenticated %}
   <nav class="nav-tabs" aria-label="Navigation principale">
-    <a href="/profil/"   class="nav-tab {% if request.resolver_match.url_name == 'profil'   %}active{% endif %}">Mon Almanak</a>
-    <a href="/voutes/"   class="nav-tab {% if request.resolver_match.url_name == 'voutes'   %}active{% endif %}">Voûtes</a>
-    <a href="/reglages/" class="nav-tab {% if request.resolver_match.url_name == 'reglages' %}active{% endif %}">Réglages</a>
+    <a href="/profil/"    class="nav-tab {% if request.resolver_match.url_name == 'profil'    %}active{% endif %}">Mon Almanak</a>
+    <a href="/pionniers/" class="nav-tab {% if request.resolver_match.url_name == 'pionniers' %}active{% endif %}">Pionniers</a>
+    <a href="/voutes/"    class="nav-tab {% if request.resolver_match.url_name == 'voutes'    %}active{% endif %}">Voûtes</a>
+    <a href="/reglages/"  class="nav-tab {% if request.resolver_match.url_name == 'reglages'  %}active{% endif %}">Réglages</a>
   </nav>
   {% endif %}
   {% endblock %}

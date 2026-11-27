@@ -18,7 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
 from django.conf.urls.static import static
-from profiles.views import profil, voutes, reglages, onboarding, profil_public, api_photo_upload, api_banniere_upload
+from profiles.views import profil, voutes, reglages, onboarding, profil_public, pionniers, api_photo_upload, api_banniere_upload
 
 DATA             = Path("/opt/almanak/data")
 APPROUVES        = DATA / "evenements.json"
@@ -69,6 +69,26 @@ def _nc_bot_auth():
         if len(parts) == 2:
             return parts[0], parts[1]
     return None, None
+
+
+VOUTE_STRUCTURE = ["Inbox", "Projets", "Casquettes", "Ressources", "Archives"]
+
+
+def _nc_init_voute(username, password):
+    """Crée la structure de dossiers standard dans la voûte Nextcloud du pionnier."""
+    creds_b64 = base64.b64encode(f"{username}:{password}".encode()).decode()
+    headers = {"Authorization": f"Basic {creds_b64}"}
+    for dossier in VOUTE_STRUCTURE:
+        url = (
+            f"{NEXTCLOUD_BASE}/remote.php/dav/files/"
+            f"{urllib.parse.quote(username, safe='')}/"
+            f"{urllib.parse.quote(dossier, safe='')}"
+        )
+        req = urllib.request.Request(url, method="MKCOL", headers=headers)
+        try:
+            urllib.request.urlopen(req, timeout=10)
+        except Exception:
+            pass  # 405 = existe déjà, autre erreur = non fatale
 
 
 def _nc_creer_utilisateur(username, password, display_name="", email=""):
@@ -206,6 +226,7 @@ def rejoindre(request):
     entree["nc_username"] = username
     entree["temp_pass"]   = ""
     _ecrire_json(REGISTRE_BIDOO, registre)
+    _nc_init_voute(username, password)
     return redirect("/oauth/nextcloud/login/")
 
 
@@ -258,8 +279,13 @@ def oauth_nextcloud_callback(request):
     display_name = user_data.get("display-name", username) or username
     if not username:
         return HttpResponse("Identifiant Nextcloud manquant. <a href='/'>Retour</a>", status=500)
+    from profiles.models import UserProfile
     user, _ = User.objects.get_or_create(username=username,
                                           defaults={"email": email, "first_name": display_name})
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    if not profile.nc_username:
+        profile.nc_username = username
+        profile.save()
     auth_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
     return redirect("/profil/")
 
@@ -477,6 +503,7 @@ urlpatterns = [
     path("deconnexion/", auth_views.LogoutView.as_view(next_page="/connexion/"), name="deconnexion"),
     path("profil/", profil, name="profil"),
     path("onboarding/", onboarding, name="onboarding"),
+    path("pionniers/", pionniers, name="pionniers"),
     path("p/<str:username>/", profil_public, name="profil_public"),
     path("voutes/", voutes, name="voutes"),
     path("reglages/", reglages, name="reglages"),

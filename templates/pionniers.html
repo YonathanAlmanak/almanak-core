@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}Les pionniers — Almanak{% endblock %}
+
+{% block extra_head %}
+<style>
+  .page-entete {
+    padding: 2rem 0 1.5rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 2rem;
+  }
+  .page-titre {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.9rem;
+    font-weight: 600;
+    margin: 0 0 .4rem;
+    color: var(--ink);
+  }
+  .page-sous-titre {
+    font-size: .9rem;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .pionniers-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .pionnier-carte {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: box-shadow .15s, border-color .15s;
+  }
+  .pionnier-carte:hover {
+    border-color: var(--accent);
+    box-shadow: 0 2px 12px rgba(59, 93, 66, .1);
+  }
+
+  .pionnier-banniere {
+    width: 100%;
+    height: 80px;
+    object-fit: cover;
+    display: block;
+    background: var(--accent-soft);
+  }
+  .pionnier-banniere-defaut {
+    width: 100%;
+    height: 80px;
+    background: linear-gradient(135deg, var(--accent-soft) 0%, #d4e3d5 100%);
+    display: block;
+  }
+
+  .pionnier-corps {
+    padding: 1rem 1.1rem 1.1rem;
+    display: flex;
+    gap: .85rem;
+    align-items: flex-start;
+  }
+  .pionnier-avatar-wrap {
+    flex-shrink: 0;
+    margin-top: -2rem;
+  }
+  .pionnier-avatar {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--surface);
+    background: var(--line);
+    display: block;
+  }
+  .pionnier-avatar-defaut {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    border: 3px solid var(--surface);
+    background: var(--accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Fraunces", serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-top: -2rem;
+  }
+
+  .pionnier-info { flex: 1; min-width: 0; }
+  .pionnier-nom {
+    font-weight: 600;
+    font-size: .95rem;
+    margin: 0 0 .2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pionnier-village {
+    font-size: .78rem;
+    color: var(--ink-soft);
+    margin: 0 0 .4rem;
+  }
+  .pionnier-village::before {
+    content: '📍 ';
+    font-style: normal;
+  }
+  .pionnier-bio {
+    font-size: .82rem;
+    color: var(--ink-soft);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .pionniers-vide {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--ink-soft);
+  }
+  .pionniers-vide p { font-size: 1rem; margin: 0 0 .5rem; }
+
+  .compteur {
+    font-size: .78rem;
+    color: var(--ink-soft);
+    margin-bottom: 1.2rem;
+    font-weight: 500;
+  }
+
+  .btn-rejoindre {
+    display: inline-block;
+    padding: .45rem 1.1rem;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 7px;
+    font-size: .88rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .btn-rejoindre:hover { background: #2f4c35; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-entete">
+  <h1 class="page-titre">Les pionniers</h1>
+  <p class="page-sous-titre">Les bâtisseurs du réseau de confiance — les visages de nos villages.</p>
+</div>
+
+{% if profils %}
+  <p class="compteur">{{ profils|length }} pionnier{% if profils|length > 1 %}s{% endif %}</p>
+  <div class="pionniers-grille">
+    {% for p in profils %}
+    <a class="pionnier-carte" href="/p/{{ p.user.username }}/">
+
+      {% if p.photo_banniere %}
+        <img class="pionnier-banniere" src="{{ p.photo_banniere.url }}" alt="">
+      {% else %}
+        <div class="pionnier-banniere-defaut"></div>
+      {% endif %}
+
+      <div class="pionnier-corps">
+        {% if p.photo %}
+          <img class="pionnier-avatar" src="{{ p.photo.url }}"
+               alt="Photo de {{ p.nom_artiste|default:p.user.username }}">
+        {% else %}
+          <div class="pionnier-avatar-defaut" aria-hidden="true">
+            {{ p.nom_artiste|default:p.user.first_name|default:p.user.username|first|upper }}
+          </div>
+        {% endif %}
+
+        <div class="pionnier-info">
+          <p class="pionnier-nom">{{ p.nom_artiste|default:p.user.first_name|default:p.user.username }}</p>
+          {% if p.village %}
+            <p class="pionnier-village">{{ p.village }}</p>
+          {% endif %}
+          {% if p.bio_courte %}
+            <p class="pionnier-bio">{{ p.bio_courte }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+    </a>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <div class="pionniers-vide">
+    <p>Aucun pionnier inscrit pour l'instant.</p>
+    {% if not est_connecte %}
+      <a href="/rejoindre/" class="btn-rejoindre">Rejoindre le réseau</a>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% endblock %}

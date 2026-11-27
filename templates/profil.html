@@ -170,6 +170,28 @@
   }
   .talk-ouvrir:hover { background: #2f4c35; }
 
+  /* ── Ma voûte ── */
+  .voute-dossiers {
+    display: flex; flex-direction: column; gap: .35rem; margin-bottom: .9rem;
+  }
+  .voute-dossier-lien {
+    display: flex; align-items: center; gap: .6rem;
+    padding: .4rem .6rem; border-radius: 6px;
+    text-decoration: none; color: var(--ink); font-size: .88rem;
+    transition: background .12s;
+  }
+  .voute-dossier-lien:hover { background: var(--accent-soft); }
+  .voute-dossier-icone {
+    width: 24px; height: 24px; border-radius: 5px;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .72rem; font-weight: 700; flex-shrink: 0;
+  }
+  .voute-ouvrir {
+    font-size: .82rem; color: var(--accent); text-decoration: none; font-weight: 500;
+  }
+  .voute-ouvrir:hover { text-decoration: underline; }
+
   /* ── Placeholder "bientôt" ── */
   .placeholder-bientot {
     font-size: .88rem; color: var(--ink-soft);
@@ -289,10 +311,26 @@
     </div>
   </div>
 
-  <!-- ── Ma voûte (pont à venir) ── -->
-  <div class="tb-widget tb-widget--bientot">
+  <!-- ── Ma voûte ── -->
+  <div class="tb-widget {% if not profile.nc_username %}tb-widget--bientot{% endif %}">
     <h2>Ma voûte</h2>
-    <p class="placeholder-bientot">Connexion à ta voûte Nextcloud personnelle — bientôt disponible.</p>
+    {% if profile.nc_username %}
+      {% with nc="https://"|add:profile.nc_server %}
+      <div class="voute-dossiers">
+        {% for dossier in voute_dossiers %}
+        <a class="voute-dossier-lien" href="{{ nc }}/apps/files/?dir=/{{ dossier }}" target="_blank" rel="noopener">
+          <span class="voute-dossier-icone">{{ dossier|first }}</span>
+          {{ dossier }}
+        </a>
+        {% endfor %}
+      </div>
+      <a class="voute-ouvrir" href="{{ nc }}/apps/files/" target="_blank" rel="noopener">Ouvrir ma voûte →</a>
+      {% endwith %}
+    {% else %}
+      <p class="placeholder-bientot">
+        Lie ta voûte Nextcloud dans <a href="/reglages/">les Réglages</a>.
+      </p>
+    {% endif %}
   </div>
 
   <!-- ── Agenda du village ── -->

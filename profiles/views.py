@@ -30,11 +30,15 @@ def _profil(user):
 NC_BASE = "https://atelier.neovillage.org"
 
 
+VOUTE_STRUCTURE = ["Inbox", "Projets", "Casquettes", "Ressources", "Archives"]
+
+
 @login_required
 def profil(request):
     profile = _profil(request.user)
     return render(request, "profil.html", {
         "profile": profile,
+        "voute_dossiers": VOUTE_STRUCTURE,
         "sur_la_table": sur_la_table(),
         "nouvelles_groupe": nouvelles_groupe(PIONNIER_ROOM),
         "talk_url": f"{NC_BASE}/apps/spreed/#/call/{PIONNIER_ROOM}",
@@ -151,6 +155,19 @@ def api_banniere_upload(request):
         return JsonResponse({"erreur": f"Erreur lors de la sauvegarde : {e}"}, status=500)
 
     return JsonResponse({"ok": True, "url": profile.photo_banniere.url})
+
+
+def pionniers(request):
+    profils = (
+        UserProfile.objects
+        .filter(onboarding_etape__gte=1)
+        .select_related("user")
+        .order_by("-id")
+    )
+    return render(request, "pionniers.html", {
+        "profils": profils,
+        "est_connecte": request.user.is_authenticated,
+    })
 
 
 @login_required
