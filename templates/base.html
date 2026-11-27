@@ -27,7 +27,7 @@
 </head>
 <body>
     <nav>
-        <a href="/" class="nav-logo">
+        <a href="{% block nav_logo_href %}/{% endblock %}" class="nav-logo">
             <svg viewBox="0 0 100 100" aria-hidden="true">
                 <circle class="lg-trait" cx="50" cy="50" r="47" transform="rotate(-90 50 50)"/>
                 <path class="lg-trait" d="M43.82 10.99A39.5 39.5 0 0 0 13.12 64.16M19.3 74.86A39.5 39.5 0 0 0 80.7 74.86M86.88 64.16A39.5 39.5 0 0 0 56.18 10.99"/>
@@ -40,6 +40,7 @@
             </svg>
             Almanak
         </a>
+        {% block nav_links %}
         {% if user.is_authenticated %}
             <a href="/profil/">Mon profil</a>
             <form method="post" action="/deconnexion/" style="display:inline">
@@ -49,6 +50,7 @@
         {% else %}
             <a href="/connexion/">Connexion</a>
         {% endif %}
+        {% endblock %}
     </nav>
     <main>
         {% block content %}{% endblock %}
