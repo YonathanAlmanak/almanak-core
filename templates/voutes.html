@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Voûtes — Almanak{% endblock %}
+
+{% block extra_head %}
+<style>
+  .page-title {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 1.75rem;
+  }
+
+  .section-label {
+    font-size: .72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-soft);
+    margin: 0 0 .75rem;
+  }
+
+  .voute-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    margin-bottom: .75rem;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+  }
+  .voute-info { flex: 1; min-width: 0; }
+  .voute-name { font-weight: 600; margin-bottom: .15rem; }
+  .voute-meta { font-size: .8rem; color: var(--ink-soft); }
+  .voute-status {
+    font-size: .75rem;
+    font-weight: 600;
+    padding: .2rem .65rem;
+    border-radius: 999px;
+    flex-shrink: 0;
+  }
+  .voute-status.liee { background: #e8f0e9; color: #2a4a30; }
+  .voute-status.non-liee { background: #f5ece0; color: #7a4a1a; }
+  .voute-status.vide { background: var(--line); color: var(--ink-soft); }
+
+  .btn-outline {
+    padding: .38rem .9rem;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 6px;
+    font-size: .8rem;
+    font-weight: 600;
+    font-family: inherit;
+    background: none;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn-outline:hover { background: var(--accent-soft); }
+
+  .schema-box {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1.4rem 1.5rem;
+    margin-top: 2rem;
+  }
+  .schema-label-title {
+    font-size: .72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-soft);
+    margin-bottom: 1rem;
+  }
+  .schema-row {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: .6rem;
+    flex-wrap: wrap;
+  }
+  .schema-node {
+    background: #e8f0e9;
+    border: 1px solid #b6d4ba;
+    border-radius: 6px;
+    padding: .3rem .75rem;
+    font-size: .82rem;
+    font-weight: 600;
+    color: #2a4a30;
+    white-space: nowrap;
+  }
+  .schema-node.or { background: #fdf3e3; border-color: #e8c99a; color: #7a4a1a; }
+  .schema-arrow { color: var(--ink-soft); font-size: .9rem; }
+  .schema-desc { font-size: .8rem; color: var(--ink-soft); font-style: italic; }
+
+  .section-gap { margin-top: 2rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Voûtes</h1>
+
+<!-- ── Voûte personnelle ── -->
+<p class="section-label">Ma voûte personnelle</p>
+<div class="voute-card">
+  <div class="voute-info">
+    <div class="voute-name">Voûte de {{ user.first_name|default:user.username }}</div>
+    {% if profile.nc_username %}
+    <div class="voute-meta">{{ profile.nc_server }} · utilisateur : <code>{{ profile.nc_username }}</code></div>
+    {% else %}
+    <div class="voute-meta">Non liée — configure ta voûte dans les <a href="/reglages/">Réglages</a>.</div>
+    {% endif %}
+  </div>
+  {% if profile.nc_username %}
+  <span class="voute-status liee">✓ Liée</span>
+  <a href="/reglages/" class="btn-outline">Modifier</a>
+  {% else %}
+  <span class="voute-status vide">Non liée</span>
+  <a href="/reglages/" class="btn-outline">Lier</a>
+  {% endif %}
+</div>
+
+<!-- ── Voûtes collaboratives ── -->
+<div class="section-gap">
+  <p class="section-label">Voûtes collaboratives</p>
+  <div class="voute-card">
+    <div class="voute-info">
+      <div class="voute-name">Pionnier Néovillage</div>
+      <div class="voute-meta">Voûte du groupe fondateur · salon Talk partagé</div>
+    </div>
+    <span class="voute-status liee">✓ Membre</span>
+  </div>
+</div>
+
+<!-- ── Schéma d'architecture ── -->
+<div class="schema-box">
+  <div class="schema-label-title">Comment ça fonctionne</div>
+  <div class="schema-row">
+    <div class="schema-node">Nextcloud de {{ user.first_name|default:user.username }}</div>
+    <span class="schema-arrow">→</span>
+    <span class="schema-desc">tes fichiers, gérés par Nextcloud (permissions natives)</span>
+  </div>
+  <div class="schema-row">
+    <div class="schema-node or">Almanak</div>
+    <span class="schema-arrow">→</span>
+    <span class="schema-desc">registre de fédération, consentement et configuration des widgets</span>
+  </div>
+  <div class="schema-row">
+    <div class="schema-node">Voûte collaborative</div>
+    <span class="schema-arrow">→</span>
+    <span class="schema-desc">dossier Nextcloud partagé + membres consentants</span>
+  </div>
+</div>
+{% endblock %}

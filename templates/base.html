@@ -1,59 +1,186 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Almanak{% endblock %}</title>
-    <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
-    <style>
-        :root {
-            --ink: #232620; --ink-soft: #5b5c4f;
-            --bg: #efece0; --surface: #f9f7ee; --line: #d9d2ba;
-            --accent: #3b5d42; --logo-vert: #2E4A33; --logo-or: #E1A43B;
-        }
-        body { font-family: system-ui, sans-serif; max-width: 900px; margin: 0 auto; padding: 0 1rem 2rem; background: var(--bg); color: var(--ink); }
-        nav { display: flex; align-items: center; gap: 1.2rem; padding: .9rem 0; border-bottom: 1px solid var(--line); margin-bottom: 1.5rem; }
-        nav a { text-decoration: none; color: var(--ink-soft); font-size: .9rem; }
-        nav a:hover { color: var(--ink); text-decoration: underline; }
-        .nav-logo { display: flex; align-items: center; gap: .5rem; font-weight: 600; font-size: 1rem; color: var(--ink); margin-right: auto; }
-        .nav-logo svg { width: 28px; height: 28px; flex-shrink: 0; }
-        .lg-trait { fill: none; stroke: var(--logo-vert); stroke-width: 3.6; stroke-miterlimit: 10; }
-        .lg-or    { fill: none; stroke: var(--logo-or);   stroke-width: 3.96; }
-        .lg-noeud { fill: var(--logo-vert); }
-        .btn-deconnexion { background: none; border: none; padding: 0; font: inherit; font-size: .9rem; color: var(--ink-soft); cursor: pointer; }
-        .btn-deconnexion:hover { color: var(--ink); text-decoration: underline; }
-    </style>
-    {% block extra_head %}{% endblock %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Almanak{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --ink: #232620; --ink-soft: #5b5c4f;
+      --bg: #efece0; --surface: #f9f7ee; --line: #d9d2ba;
+      --accent: #3b5d42; --accent-soft: #e4ead9;
+      --logo-vert: #2E4A33; --logo-or: #E1A43B;
+      --or-pale: #fdf6e3;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Work Sans", system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    /* ── En-tête ── */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      gap: 0;
+      height: 56px;
+      padding: 0 1.5rem;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      text-decoration: none;
+      font-family: "Fraunces", Georgia, serif;
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: var(--ink);
+      flex-shrink: 0;
+      margin-right: 1.5rem;
+    }
+    .nav-logo svg { width: 28px; height: 28px; }
+    .lg-trait { fill:none; stroke:var(--logo-vert); stroke-width:3.6; stroke-miterlimit:10; }
+    .lg-or    { fill:none; stroke:var(--logo-or);   stroke-width:3.96; }
+    .lg-noeud { fill:var(--logo-vert); }
+
+    /* Onglets */
+    .nav-tabs {
+      display: flex;
+      align-items: center;
+      height: 100%;
+      flex: 1;
+    }
+    .nav-tab {
+      display: flex;
+      align-items: center;
+      height: 100%;
+      padding: 0 1rem;
+      font-size: .875rem;
+      font-weight: 500;
+      color: var(--ink-soft);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      transition: color .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    .nav-tab:hover { color: var(--ink); }
+    .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+
+    /* Droite */
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .badge-pionnier {
+      background: var(--or-pale);
+      border: 1px solid #e8d5a3;
+      color: #7a5c1e;
+      border-radius: 999px;
+      padding: .2rem .7rem;
+      font-size: .75rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: .3rem;
+    }
+    .badge-pionnier::before { content: "◆"; font-size: .55rem; }
+    .btn-link {
+      background: none;
+      border: none;
+      padding: 0;
+      font: inherit;
+      font-size: .875rem;
+      color: var(--ink-soft);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn-link:hover { color: var(--ink); text-decoration: underline; }
+
+    /* ── Contenu ── */
+    .site-content {
+      max-width: 940px;
+      margin: 0 auto;
+      padding: 2rem 1rem 4rem;
+    }
+
+    /* ── Messages flash ── */
+    .flash-list { list-style: none; padding: 0; margin: 0 0 1.2rem; display: flex; flex-direction: column; gap: .5rem; }
+    .flash { padding: .6rem 1rem; border-radius: 8px; font-size: .88rem; }
+    .flash.success { background: var(--accent-soft); color: var(--accent); border: 1px solid #b6d4ba; }
+    .flash.error { background: #f9ece0; color: #b96f22; border: 1px solid #e8c99a; }
+  </style>
+  {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <nav>
-        <a href="{% block nav_logo_href %}/{% endblock %}" class="nav-logo">
-            <svg viewBox="0 0 100 100" aria-hidden="true">
-                <circle class="lg-trait" cx="50" cy="50" r="47" transform="rotate(-90 50 50)"/>
-                <path class="lg-trait" d="M43.82 10.99A39.5 39.5 0 0 0 13.12 64.16M19.3 74.86A39.5 39.5 0 0 0 80.7 74.86M86.88 64.16A39.5 39.5 0 0 0 56.18 10.99"/>
-                <path class="lg-trait" d="M15.79 69.75L50 10.5L84.21 69.75"/>
-                <path class="lg-trait" d="M25.03 74.75L50 31.5L74.97 74.75"/>
-                <circle class="lg-noeud" cx="50"    cy="10.5"  r="4.14"/>
-                <circle class="lg-noeud" cx="15.79" cy="69.75" r="4.14"/>
-                <circle class="lg-noeud" cx="84.21" cy="69.75" r="4.14"/>
-                <circle class="lg-or"    cx="50"    cy="70.5"  r="9.75" transform="rotate(-90 50 70.5)"/>
-            </svg>
-            Almanak
-        </a>
-        {% block nav_links %}
-        {% if user.is_authenticated %}
-            <a href="/profil/">Mon profil</a>
-            <form method="post" action="/deconnexion/" style="display:inline">
-                {% csrf_token %}
-                <button type="submit" class="btn-deconnexion">Déconnexion</button>
-            </form>
-        {% else %}
-            <a href="/connexion/">Connexion</a>
-        {% endif %}
-        {% endblock %}
-    </nav>
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+
+<header class="site-header">
+  <a href="{% block nav_logo_href %}/{% endblock %}" class="nav-logo">
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <circle class="lg-trait" cx="50" cy="50" r="47" transform="rotate(-90 50 50)"/>
+      <path class="lg-trait" d="M43.82 10.99A39.5 39.5 0 0 0 13.12 64.16M19.3 74.86A39.5 39.5 0 0 0 80.7 74.86M86.88 64.16A39.5 39.5 0 0 0 56.18 10.99"/>
+      <path class="lg-trait" d="M15.79 69.75L50 10.5L84.21 69.75"/>
+      <path class="lg-trait" d="M25.03 74.75L50 31.5L74.97 74.75"/>
+      <circle class="lg-noeud" cx="50"    cy="10.5"  r="4.14"/>
+      <circle class="lg-noeud" cx="15.79" cy="69.75" r="4.14"/>
+      <circle class="lg-noeud" cx="84.21" cy="69.75" r="4.14"/>
+      <circle class="lg-or"    cx="50"    cy="70.5"  r="9.75" transform="rotate(-90 50 70.5)"/>
+    </svg>
+    Almanak
+  </a>
+
+  {% block nav_tabs %}
+  {% if user.is_authenticated %}
+  <nav class="nav-tabs" aria-label="Navigation principale">
+    <a href="/profil/"   class="nav-tab {% if request.resolver_match.url_name == 'profil'   %}active{% endif %}">Mon Almanak</a>
+    <a href="/voutes/"   class="nav-tab {% if request.resolver_match.url_name == 'voutes'   %}active{% endif %}">Voûtes</a>
+    <a href="/reglages/" class="nav-tab {% if request.resolver_match.url_name == 'reglages' %}active{% endif %}">Réglages</a>
+  </nav>
+  {% endif %}
+  {% endblock %}
+
+  {% block nav_links %}
+  {% if user.is_authenticated %}
+  <div class="nav-right">
+    <span class="badge-pionnier">Pionnier Néovillage</span>
+    <form method="post" action="/deconnexion/" style="display:inline">
+      {% csrf_token %}
+      <button type="submit" class="btn-link">Déconnexion</button>
+    </form>
+  </div>
+  {% else %}
+  <div class="nav-right">
+    <a href="/connexion/" class="btn-link">Connexion</a>
+  </div>
+  {% endif %}
+  {% endblock %}
+</header>
+
+<main class="site-content">
+  {% if messages %}
+  <ul class="flash-list">
+    {% for msg in messages %}
+    <li class="flash {{ msg.tags }}">{{ msg }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+
 </body>
 </html>

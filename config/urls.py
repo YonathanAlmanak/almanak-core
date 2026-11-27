@@ -16,7 +16,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from profiles.views import profil
+from profiles.views import profil, voutes, reglages
 
 DATA             = Path("/opt/almanak/data")
 APPROUVES        = DATA / "evenements.json"
@@ -474,6 +474,8 @@ urlpatterns = [
     ), name="connexion"),
     path("deconnexion/", auth_views.LogoutView.as_view(next_page="/connexion/"), name="deconnexion"),
     path("profil/", profil, name="profil"),
+    path("voutes/", voutes, name="voutes"),
+    path("reglages/", reglages, name="reglages"),
     # OAuth2
     path("oauth/nextcloud/login/", oauth_nextcloud_login, name="oauth_nextcloud_login"),
     path("oauth/nextcloud/callback/", oauth_nextcloud_callback, name="oauth_nextcloud_callback"),

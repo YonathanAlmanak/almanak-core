@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Réglages — Almanak{% endblock %}
+
+{% block extra_head %}
+<style>
+  .page-title {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 1.75rem;
+  }
+
+  .reglages-grid {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 1.25rem;
+    align-items: start;
+  }
+  @media (max-width: 600px) { .reglages-grid { grid-template-columns: 1fr; } }
+
+  .reglages-nav {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .reglages-nav-item {
+    display: block;
+    padding: .7rem 1.1rem;
+    font-size: .875rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+    transition: background .1s, color .1s;
+  }
+  .reglages-nav-item:last-child { border-bottom: none; }
+  .reglages-nav-item:hover { background: var(--accent-soft); color: var(--ink); }
+  .reglages-nav-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+  .reglages-panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .panel-title {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 1.25rem;
+    padding-bottom: .75rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .form-row { display: flex; flex-direction: column; gap: .3rem; margin-bottom: 1rem; }
+  .form-label { font-size: .82rem; font-weight: 600; color: var(--ink-soft); }
+  .form-input {
+    padding: .55rem .75rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--bg);
+    font-family: inherit;
+    font-size: .9rem;
+    color: var(--ink);
+    outline: none;
+    width: 100%;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  .form-hint { font-size: .78rem; color: var(--ink-soft); }
+
+  .btn-primary {
+    padding: .55rem 1.2rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: .9rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: .25rem;
+  }
+  .btn-primary:hover { background: #2f4c35; }
+
+  .nc-status {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: .82rem;
+    padding: .3rem .75rem;
+    border-radius: 6px;
+    margin-bottom: 1.25rem;
+  }
+  .nc-status.liee { background: #e8f0e9; color: #2a4a30; border: 1px solid #b6d4ba; }
+  .nc-status.non-liee { background: #f5ece0; color: #7a4a1a; border: 1px solid #e8c99a; }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Réglages</h1>
+
+<div class="reglages-grid">
+
+  <!-- Navigation latérale -->
+  <nav class="reglages-nav" aria-label="Sections des réglages">
+    <a href="/reglages/" class="reglages-nav-item active">Voûte Nextcloud</a>
+    <span class="reglages-nav-item" style="opacity:.5;cursor:default">Mes widgets</span>
+    <span class="reglages-nav-item" style="opacity:.5;cursor:default">Profil public</span>
+    <span class="reglages-nav-item" style="opacity:.5;cursor:default">Mot de passe</span>
+  </nav>
+
+  <!-- Panneau -->
+  <div class="reglages-panel">
+    <h2 class="panel-title">Voûte Nextcloud personnelle</h2>
+
+    {% if profile.nc_username %}
+    <div class="nc-status liee">✓ Liée à <strong>{{ profile.nc_username }}</strong> sur {{ profile.nc_server }}</div>
+    {% else %}
+    <div class="nc-status non-liee">Non liée — remplis les champs ci-dessous pour connecter ta voûte.</div>
+    {% endif %}
+
+    <form method="post" action="/reglages/">
+      {% csrf_token %}
+      <input type="hidden" name="section" value="nextcloud">
+
+      <div class="form-row">
+        <label class="form-label" for="id_nc_username">Nom d'utilisateur Nextcloud</label>
+        <input class="form-input" type="text" name="nc_username" id="id_nc_username"
+               value="{{ profile.nc_username }}" placeholder="ex : yonathan" autocomplete="username">
+        <span class="form-hint">Ton identifiant sur le serveur Nextcloud ci-dessous.</span>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label" for="id_nc_server">Serveur Nextcloud</label>
+        <input class="form-input" type="text" name="nc_server" id="id_nc_server"
+               value="{{ profile.nc_server|default:'atelier.neovillage.org' }}"
+               placeholder="ex : atelier.neovillage.org">
+        <span class="form-hint">Laisse la valeur par défaut si tu es hébergé chez Néovillage.</span>
+      </div>
+
+      <button type="submit" class="btn-primary">Enregistrer</button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}
