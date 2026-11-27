@@ -100,6 +100,8 @@
       gap: .3rem;
     }
     .badge-pionnier::before { content: "◆"; font-size: .55rem; }
+    .badge-admin { background: #e8f0e9; border-color: #b6d4ba; color: #2a4a30; }
+    .badge-superadmin { background: #232620; border-color: #232620; color: #f9f7ee; }
     .btn-link {
       background: none;
       border: none;
@@ -157,7 +159,13 @@
   {% block nav_links %}
   {% if user.is_authenticated %}
   <div class="nav-right">
+    {% if user_profile.role == 'superadmin' %}
+    <span class="badge-pionnier badge-superadmin">Superadmin</span>
+    {% elif user_profile.role == 'admin' %}
+    <span class="badge-pionnier badge-admin">Admin</span>
+    {% else %}
     <span class="badge-pionnier">Pionnier Néovillage</span>
+    {% endif %}
     <form method="post" action="/deconnexion/" style="display:inline">
       {% csrf_token %}
       <button type="submit" class="btn-link">Déconnexion</button>
