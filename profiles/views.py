@@ -142,7 +142,7 @@ def profil_public(request, username):
             .select_related("user")
             .order_by("-id")[:4]
         )
-    # Vouches
+    # Vouches + Orenda
     vouches = Vouch.objects.filter(cible=pionnier).select_related("source__profile")[:8]
     nb_vouches = Vouch.objects.filter(cible=pionnier).count()
     j_ai_vouche = (
@@ -150,6 +150,7 @@ def profil_public(request, username):
         and not est_moi
         and Vouch.objects.filter(source=request.user, cible=pionnier).exists()
     )
+    orenda = profil_obj.orenda_score()
     return render(request, "profil_public.html", {
         "pionnier": pionnier,
         "profil": profil_obj,
@@ -162,6 +163,7 @@ def profil_public(request, username):
         "vouches": vouches,
         "nb_vouches": nb_vouches,
         "j_ai_vouche": j_ai_vouche,
+        "orenda": orenda,
     })
 
 

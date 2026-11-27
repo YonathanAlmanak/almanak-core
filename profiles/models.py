@@ -40,6 +40,14 @@ class UserProfile(models.Model):
             remplis += 1
         return int(remplis / 8 * 100)
 
+    def orenda_score(self):
+        """Score de confiance v0.1 : présence (20) + profil (30) + vouches reçus (50)."""
+        from profiles.models import Vouch
+        nb_vouches = Vouch.objects.filter(cible=self.user).count()
+        pts_vouches = min(nb_vouches * 8, 50)
+        pts_profil = int(self.pourcentage_profil() * 0.30)
+        return 20 + pts_profil + pts_vouches
+
     def is_admin(self):
         return self.role in (self.ADMIN, self.SUPERADMIN)
 
