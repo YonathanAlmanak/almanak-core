@@ -76,7 +76,7 @@ def _nc_bot_auth():
     return None, None
 
 
-VOUTE_STRUCTURE = ["Inbox", "Projets", "Casquettes", "Ressources", "Archives"]
+VOUTE_STRUCTURE = ["1-Inbox", "2-Projects", "3-Casquettes", "4-Resources", "5-Archives"]
 
 
 def _nc_init_voute(username, password):

@@ -2,13 +2,16 @@
 Client Nextcloud minimal pour les widgets de l'Almanak.
 Variables d'env requises dans /etc/almanak/almanak.env :
   NC_URL          https://cloud.entretablees.ca
-  NC_USER         nom d'utilisateur Nextcloud
+  NC_USER         nom d'utilisateur Nextcloud (compte admin/bot)
   NC_APP_PASSWORD mot de passe d'application Nextcloud
 """
+import logging
 import os
 from datetime import datetime
 
 import requests
+
+logger = logging.getLogger(__name__)
 
 NC_URL = os.environ.get("NC_URL", "").rstrip("/")
 NC_USER = os.environ.get("NC_USER", "")
@@ -20,6 +23,41 @@ _OCS = {"OCS-APIRequest": "true", "Accept": "application/json"}
 
 def configured():
     return bool(NC_URL and NC_USER and NC_APP_PASSWORD)
+
+
+def ecrire_dans_voute(nc_username: str, chemin_relatif: str, contenu: str) -> bool:
+    """
+    Écrit (ou écrase) un fichier texte dans la voûte Nextcloud d'un pionnier.
+
+    Utilise les credentials admin/bot (NC_USER, NC_APP_PASSWORD). Fonctionne
+    quand NC_USER est un compte admin sur l'instance Nextcloud cible.
+
+    chemin_relatif : ex. "2-Projects/Mon profil Almanak.md" (sans slash initial)
+    Retourne True si réussi, False sinon (ne lève jamais d'exception).
+    """
+    if not configured():
+        return False
+    try:
+        import urllib.parse
+        url = (
+            f"{NC_URL}/remote.php/dav/files/"
+            f"{urllib.parse.quote(nc_username, safe='')}/"
+            f"{urllib.parse.quote(chemin_relatif, safe='/')}"
+        )
+        resp = requests.put(
+            url,
+            data=contenu.encode("utf-8"),
+            auth=_AUTH,
+            headers={"Content-Type": "text/markdown; charset=utf-8"},
+            timeout=10,
+        )
+        if resp.status_code not in (200, 201, 204):
+            logger.warning("ecrire_dans_voute %s/%s → HTTP %s", nc_username, chemin_relatif, resp.status_code)
+            return False
+        return True
+    except Exception as exc:
+        logger.warning("ecrire_dans_voute erreur : %s", exc)
+        return False
 
 
 def sur_la_table(limit=8):

@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.http import require_http_methods
 
-from config.nextcloud import nouvelles_groupe, sur_la_table
+from config.nextcloud import nouvelles_groupe, sur_la_table, ecrire_dans_voute
 from .models import UserProfile, Notification, Vouch
 
 PIONNIER_ROOM = "b5zpbo3j"
@@ -30,7 +30,38 @@ def _profil(user):
 NC_BASE = "https://atelier.neovillage.org"
 
 
-VOUTE_STRUCTURE = ["Inbox", "Projets", "Casquettes", "Ressources", "Archives"]
+VOUTE_STRUCTURE = ["1-Inbox", "2-Projects", "3-Casquettes", "4-Resources", "5-Archives"]
+
+
+def _profil_vers_md(profile) -> str:
+    """Génère le contenu Markdown du profil d'un pionnier pour sa voûte."""
+    from django.utils.timezone import localdate
+    aujourd_hui = localdate().isoformat()
+    lignes = [
+        "---",
+        "type: profil",
+        f"created: {aujourd_hui}",
+        "status: actif",
+        "---",
+        "",
+        f"# Mon profil Almanak",
+        "",
+    ]
+    champs = [
+        ("nom_artiste",        "Nom"),
+        ("village",            "Village"),
+        ("bio_courte",         "Bio"),
+        ("passions",           "Passions"),
+        ("experience",         "Expérience"),
+        ("relations_cherchees","Relations cherchées"),
+        ("offre_culturelle",   "Offre"),
+    ]
+    for attr, label in champs:
+        valeur = (getattr(profile, attr, "") or "").strip()
+        if valeur:
+            lignes.append(f"**{label}** : {valeur}")
+            lignes.append("")
+    return "\n".join(lignes)
 
 
 def _notifier(destinataires, type_notif, texte, lien=""):
@@ -97,6 +128,9 @@ def onboarding(request):
 
         prochaine = etape_post + 1
         if prochaine > 8:
+            if profile.nc_username:
+                contenu = _profil_vers_md(profile)
+                ecrire_dans_voute(profile.nc_username, "2-Projects/Mon profil Almanak.md", contenu)
             messages.success(request, "Ton profil est maintenant configuré !")
             return redirect("/profil/")
         return redirect(f"/onboarding/?etape={prochaine}")
