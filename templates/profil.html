@@ -170,6 +170,27 @@
   }
   .talk-ouvrir:hover { background: #2f4c35; }
 
+  /* ── Pionniers récents ── */
+  .pionnier-mini-liste { display: flex; flex-direction: column; gap: .3rem; margin-bottom: .9rem; }
+  .pionnier-mini {
+    display: flex; align-items: center; gap: .7rem;
+    padding: .4rem .5rem; border-radius: 8px;
+    text-decoration: none; color: inherit; transition: background .12s;
+  }
+  .pionnier-mini:hover { background: var(--accent-soft); }
+  .pionnier-mini-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    object-fit: cover; flex-shrink: 0; border: 1.5px solid var(--line);
+  }
+  .pionnier-mini-defaut {
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Fraunces", serif; font-size: .9rem; font-weight: 600;
+  }
+  .pionnier-mini-info { flex: 1; min-width: 0; }
+  .pionnier-mini-nom { font-size: .88rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pionnier-mini-lieu { font-size: .75rem; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
   /* ── Ma voûte ── */
   .voute-dossiers {
     display: flex; flex-direction: column; gap: .35rem; margin-bottom: .9rem;
@@ -330,6 +351,34 @@
       <p class="placeholder-bientot">
         Lie ta voûte Nextcloud dans <a href="/reglages/">les Réglages</a>.
       </p>
+    {% endif %}
+  </div>
+
+  <!-- ── Pionniers récents ── -->
+  <div class="tb-widget">
+    <h2>Pionniers du réseau</h2>
+    {% if pionniers_recents %}
+    <div class="pionnier-mini-liste">
+      {% for p in pionniers_recents %}
+      <a class="pionnier-mini" href="/p/{{ p.user.username }}/">
+        {% if p.photo %}
+          <img class="pionnier-mini-avatar" src="{{ p.photo.url }}" alt="">
+        {% else %}
+          <div class="pionnier-mini-avatar pionnier-mini-defaut">
+            {{ p.nom_artiste|default:p.user.first_name|default:p.user.username|first|upper }}
+          </div>
+        {% endif %}
+        <div class="pionnier-mini-info">
+          <div class="pionnier-mini-nom">{{ p.nom_artiste|default:p.user.first_name|default:p.user.username }}</div>
+          {% if p.village %}<div class="pionnier-mini-lieu">{{ p.village }}</div>{% endif %}
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    <a href="/pionniers/" class="voute-ouvrir">Voir tous les pionniers →</a>
+    {% else %}
+    <p class="nc-vide">Les premiers pionniers apparaîtront ici.</p>
+    <a href="/pionniers/" class="voute-ouvrir">Page des pionniers →</a>
     {% endif %}
   </div>
 

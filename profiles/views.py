@@ -36,9 +36,17 @@ VOUTE_STRUCTURE = ["Inbox", "Projets", "Casquettes", "Ressources", "Archives"]
 @login_required
 def profil(request):
     profile = _profil(request.user)
+    pionniers_recents = (
+        UserProfile.objects
+        .filter(onboarding_etape__gte=1)
+        .exclude(user=request.user)
+        .select_related("user")
+        .order_by("-id")[:6]
+    )
     return render(request, "profil.html", {
         "profile": profile,
         "voute_dossiers": VOUTE_STRUCTURE,
+        "pionniers_recents": pionniers_recents,
         "sur_la_table": sur_la_table(),
         "nouvelles_groupe": nouvelles_groupe(PIONNIER_ROOM),
         "talk_url": f"{NC_BASE}/apps/spreed/#/call/{PIONNIER_ROOM}",
