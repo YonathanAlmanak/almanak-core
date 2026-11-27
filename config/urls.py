@@ -100,8 +100,9 @@ def _nc_creer_utilisateur(username, password, display_name="", email=""):
 
 # ── Pages ─────────────────────────────────────────────────────────────────────
 
-@login_required
 def home(request):
+    if request.user.is_authenticated:
+        return redirect("/profil/")
     return render(request, "home.html")
 
 
@@ -258,7 +259,7 @@ def oauth_nextcloud_callback(request):
     user, _ = User.objects.get_or_create(username=username,
                                           defaults={"email": email, "first_name": display_name})
     auth_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-    return redirect("/")
+    return redirect("/profil/")
 
 
 # ── API événements ────────────────────────────────────────────────────────────

@@ -2,74 +2,278 @@
 {% block title %}Mon Almanak{% endblock %}
 
 {% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  .almanak-header { margin: 2rem 0 1.5rem; }
-  .almanak-header h1 { margin: 0; font-size: 1.6rem; }
-  .almanak-header .subtitle { color: #666; margin: 0.2rem 0 0; font-size: 0.95rem; }
+  :root {
+    --ink: #232620; --ink-soft: #5b5c4f;
+    --bg: #efece0; --surface: #f9f7ee; --line: #d9d2ba;
+    --accent: #3b5d42; --accent-soft: #e4ead9;
+    --or: #E1A43B; --or-pale: #fdf6e3;
+  }
+  body { font-family: "Work Sans", system-ui, sans-serif !important; background: var(--bg) !important; }
 
-  .widgets { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem; }
-  @media (max-width: 600px) { .widgets { grid-template-columns: 1fr; } }
+  /* ── En-tête ── */
+  .tb-entete {
+    padding: 1.8rem 0 1.4rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 1.6rem;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .4rem;
+  }
+  .tb-bonjour { font-family: "Fraunces", Georgia, serif; font-size: 1.7rem; font-weight: 600; color: var(--ink); margin: 0; }
+  .tb-date { font-size: .82rem; color: var(--ink-soft); margin: 0; }
 
-  .widget { border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.2rem; background: #fafafa; }
-  .widget h2 { margin: 0 0 1rem; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; color: #444; }
+  /* ── Grille de widgets ── */
+  .tb-grille {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+  }
+  @media (max-width: 640px) { .tb-grille { grid-template-columns: 1fr; } }
 
-  .card-item { padding: 0.6rem 0; border-bottom: 1px solid #eee; }
-  .card-item:last-child { border-bottom: none; }
-  .card-item .card-title { font-weight: 500; }
-  .card-item .card-desc { font-size: 0.85rem; color: #666; margin-top: 0.2rem; }
+  .tb-widget {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1.2rem 1.3rem;
+  }
+  .tb-widget--plein { grid-column: 1 / -1; }
+  .tb-widget--bientot { opacity: .65; }
 
-  .message-item { padding: 0.5rem 0; border-bottom: 1px solid #eee; }
-  .message-item:last-child { border-bottom: none; }
-  .message-meta { font-size: 0.8rem; color: #888; margin-bottom: 0.2rem; }
-  .message-meta strong { color: #555; }
-  .message-text { font-size: 0.9rem; line-height: 1.4; }
+  .tb-widget h2 {
+    font-size: .72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-soft);
+    margin: 0 0 .9rem;
+  }
 
-  .widget-vide { color: #999; font-size: 0.9rem; font-style: italic; }
-  .widget-nc { color: #aaa; font-size: 0.85rem; }
+  /* ── Question du jour ── */
+  .qdj-texte { font-size: 1.05rem; font-weight: 500; color: var(--ink); margin: 0 0 1rem; line-height: 1.5; }
+  .qdj-form { display: flex; gap: .5rem; }
+  .qdj-input {
+    flex: 1; padding: .5rem .75rem; font-size: .9rem; font-family: inherit;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 6px;
+    color: var(--ink); outline: none; resize: none;
+  }
+  .qdj-input:focus { border-color: var(--accent); }
+  .qdj-btn {
+    padding: .5rem .9rem; background: var(--accent); color: #fff; border: none;
+    border-radius: 6px; font-family: inherit; font-size: .88rem; font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+  }
+  .qdj-btn:hover { background: #2f4c35; }
+  .qdj-reponses { margin-top: .9rem; display: flex; flex-direction: column; gap: .5rem; }
+  .qdj-rep { background: var(--accent-soft); border-radius: 6px; padding: .5rem .75rem; font-size: .88rem; }
+  .qdj-rep-meta { font-size: .75rem; color: var(--ink-soft); margin-bottom: .2rem; font-weight: 600; }
+  .qdj-deja { font-size: .85rem; color: var(--ink-soft); font-style: italic; }
+
+  /* ── Babillard ── */
+  .bab-posts { display: flex; flex-direction: column; gap: .6rem; max-height: 260px; overflow-y: auto; margin-bottom: .9rem; }
+  .bab-post { background: var(--bg); border-radius: 6px; padding: .55rem .75rem; font-size: .88rem; }
+  .bab-post-meta { font-size: .75rem; color: var(--ink-soft); margin-bottom: .2rem; font-weight: 600; }
+  .bab-form { display: flex; gap: .5rem; }
+  .bab-input {
+    flex: 1; padding: .5rem .75rem; font-size: .88rem; font-family: inherit;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 6px;
+    color: var(--ink); outline: none;
+  }
+  .bab-input:focus { border-color: var(--accent); }
+  .bab-btn {
+    padding: .5rem .9rem; background: var(--ink); color: var(--surface); border: none;
+    border-radius: 6px; font-family: inherit; font-size: .88rem; font-weight: 500;
+    cursor: pointer;
+  }
+  .bab-btn:hover { background: var(--ink-soft); }
+
+  /* ── Widgets Nextcloud ── */
+  .nc-item { padding: .5rem 0; border-bottom: 1px solid var(--line); font-size: .9rem; }
+  .nc-item:last-child { border-bottom: none; }
+  .nc-item-titre { font-weight: 500; color: var(--ink); }
+  .nc-item-desc { font-size: .8rem; color: var(--ink-soft); margin-top: .15rem; }
+  .nc-msg-meta { font-size: .75rem; color: var(--ink-soft); margin-bottom: .15rem; font-weight: 600; }
+  .nc-vide { font-size: .88rem; color: var(--ink-soft); font-style: italic; }
+  .nc-indispo { font-size: .82rem; color: var(--ink-soft); }
+
+  /* ── Placeholder "bientôt" ── */
+  .placeholder-bientot {
+    font-size: .88rem; color: var(--ink-soft);
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .placeholder-bientot::before {
+    content: ''; display: inline-block; width: 7px; height: 7px;
+    border-radius: 50%; background: var(--or); flex-shrink: 0;
+  }
+
+  /* ── Badge membre ── */
+  .tb-badge {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: var(--or-pale); border: 1px solid #e8d5a3;
+    border-radius: 999px; padding: .25rem .75rem;
+    font-size: .78rem; color: #7a5c1e; font-weight: 600;
+  }
+  .tb-badge::before { content: '◆'; font-size: .6rem; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="almanak-header">
-  <h1>Mon Almanak</h1>
-  <p class="subtitle">{{ user.get_full_name|default:user.username }} · membre depuis {{ user.date_joined|date:"j F Y" }}</p>
+<div class="tb-entete">
+  <h1 class="tb-bonjour">Bonjour, {{ user.first_name|default:user.username }} !</h1>
+  <span class="tb-badge">Pionnier Néovillage</span>
 </div>
 
-<div class="widgets">
+<div class="tb-grille">
 
-  <!-- Widget 1 : Sur la table -->
-  <div class="widget">
+  <!-- ── Question du jour ── -->
+  <div class="tb-widget tb-widget--plein" id="widget-qdj">
+    <h2>Question du jour</h2>
+    <p class="qdj-texte" id="qdj-texte">Chargement…</p>
+    <div id="qdj-corps"></div>
+  </div>
+
+  <!-- ── Babillard ── -->
+  <div class="tb-widget" id="widget-babillard">
+    <h2>Babillard du groupe</h2>
+    <div class="bab-posts" id="bab-posts"></div>
+    <div class="bab-form">
+      <input class="bab-input" id="bab-input" type="text" placeholder="Un mot pour le groupe…" maxlength="600">
+      <button class="bab-btn" id="bab-btn">Envoyer</button>
+    </div>
+  </div>
+
+  <!-- ── Sur la table (Nextcloud Deck) ── -->
+  <div class="tb-widget">
     <h2>Sur la table</h2>
     {% if sur_la_table is None %}
-      <p class="widget-nc">Connexion Nextcloud non configurée.<br>Ajouter <code>NC_URL</code>, <code>NC_USER</code>, <code>NC_APP_PASSWORD</code> dans <code>/etc/almanak/almanak.env</code>.</p>
+      <p class="nc-indispo">Connexion Nextcloud non configurée.<br><small>Ajouter NC_URL, NC_USER, NC_APP_PASSWORD dans <code>/etc/almanak/almanak.env</code>.</small></p>
     {% elif sur_la_table %}
       {% for carte in sur_la_table %}
-        <div class="card-item">
-          <div class="card-title">{{ carte.title }}</div>
-          {% if carte.description %}<div class="card-desc">{{ carte.description }}</div>{% endif %}
+        <div class="nc-item">
+          <div class="nc-item-titre">{{ carte.title }}</div>
+          {% if carte.description %}<div class="nc-item-desc">{{ carte.description }}</div>{% endif %}
         </div>
       {% endfor %}
     {% else %}
-      <p class="widget-vide">Aucune carte sur la table pour l'instant.</p>
+      <p class="nc-vide">Aucune carte sur la table pour l'instant.</p>
     {% endif %}
   </div>
 
-  <!-- Widget 2 : Nouvelles du groupe -->
-  <div class="widget">
+  <!-- ── Nouvelles du groupe (Nextcloud Talk) ── -->
+  <div class="tb-widget">
     <h2>Nouvelles du groupe</h2>
     {% if nouvelles_groupe is None %}
-      <p class="widget-nc">Connexion Nextcloud non configurée.</p>
+      <p class="nc-indispo">Connexion Nextcloud non configurée.</p>
     {% elif nouvelles_groupe %}
       {% for msg in nouvelles_groupe %}
-        <div class="message-item">
-          <div class="message-meta"><strong>{{ msg.actor }}</strong> · {{ msg.timestamp }}</div>
-          <div class="message-text">{{ msg.message }}</div>
+        <div class="nc-item">
+          <div class="nc-msg-meta">{{ msg.actor }} · {{ msg.timestamp }}</div>
+          <div>{{ msg.message }}</div>
         </div>
       {% endfor %}
     {% else %}
-      <p class="widget-vide">Aucun message récent.</p>
+      <p class="nc-vide">Aucun message récent.</p>
     {% endif %}
+  </div>
+
+  <!-- ── Ma voûte (pont à venir) ── -->
+  <div class="tb-widget tb-widget--bientot">
+    <h2>Ma voûte</h2>
+    <p class="placeholder-bientot">Connexion à ta voûte Nextcloud personnelle — bientôt disponible.</p>
+  </div>
+
+  <!-- ── Agenda du village ── -->
+  <div class="tb-widget tb-widget--bientot">
+    <h2>Agenda du village</h2>
+    <p class="placeholder-bientot">Les prochains événements de Sainte-Émélie et alentours.</p>
   </div>
 
 </div>
+
+<script>
+const MOI = "{{ user.username }}";
+
+/* ── Question du jour ── */
+async function chargerQdj() {
+  try {
+    const r = await fetch('/api/question-du-jour/');
+    const d = await r.json();
+    const texte = d.question || '';
+    const reponses = d.reponses || [];
+    document.getElementById('qdj-texte').textContent = texte || 'Aucune question pour aujourd\'hui.';
+    const corpsEl = document.getElementById('qdj-corps');
+    const dejaRepondu = reponses.some(rep => rep.auteur === MOI);
+    if (!texte) { corpsEl.innerHTML = ''; return; }
+    if (dejaRepondu) {
+      corpsEl.innerHTML = '<p class="qdj-deja">Tu as déjà répondu aujourd\'hui.</p>';
+    } else {
+      corpsEl.innerHTML = `
+        <div class="qdj-form">
+          <textarea class="qdj-input" id="qdj-input" rows="2" placeholder="Ta réponse…" maxlength="600"></textarea>
+          <button class="qdj-btn" id="qdj-btn">Répondre</button>
+        </div>`;
+      document.getElementById('qdj-btn').addEventListener('click', async () => {
+        const texteRep = document.getElementById('qdj-input').value.trim();
+        if (!texteRep) return;
+        await fetch('/api/question-du-jour/repondre/', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrf()},
+          body: JSON.stringify({texte: texteRep}),
+        });
+        chargerQdj();
+      });
+    }
+    if (reponses.length > 0) {
+      const rDiv = document.createElement('div');
+      rDiv.className = 'qdj-reponses';
+      reponses.slice(-5).reverse().forEach(rep => {
+        rDiv.innerHTML += `<div class="qdj-rep"><div class="qdj-rep-meta">${rep.auteur_display || rep.auteur}</div>${rep.texte}</div>`;
+      });
+      corpsEl.appendChild(rDiv);
+    }
+  } catch(e) { document.getElementById('qdj-texte').textContent = 'Chargement impossible.'; }
+}
+
+/* ── Babillard ── */
+async function chargerBabillard() {
+  try {
+    const r = await fetch('/api/babillard/');
+    const d = await r.json();
+    const posts = d.posts || [];
+    const el = document.getElementById('bab-posts');
+    if (!posts.length) { el.innerHTML = '<p class="nc-vide">Aucun message pour l\'instant.</p>'; return; }
+    el.innerHTML = posts.slice(0, 20).map(p =>
+      `<div class="bab-post"><div class="bab-post-meta">${p.auteur_display || p.auteur}</div>${p.texte}</div>`
+    ).join('');
+  } catch(e) {}
+}
+
+document.getElementById('bab-btn').addEventListener('click', async () => {
+  const texte = document.getElementById('bab-input').value.trim();
+  if (!texte) return;
+  await fetch('/api/babillard/', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrf()},
+    body: JSON.stringify({texte}),
+  });
+  document.getElementById('bab-input').value = '';
+  chargerBabillard();
+});
+
+document.getElementById('bab-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); document.getElementById('bab-btn').click(); }
+});
+
+function getCsrf() {
+  return document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('csrftoken='))?.split('=')[1] || '';
+}
+
+chargerQdj();
+chargerBabillard();
+</script>
 {% endblock %}

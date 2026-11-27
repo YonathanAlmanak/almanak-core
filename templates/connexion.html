@@ -198,12 +198,6 @@
 
     <p class="login-tagline">Ton espace personnel dans le Néovillage.</p>
 
-    <a href="/oauth/nextcloud/login/" class="btn-nc">
-      ☁&thinsp; Se connecter avec Neovillage
-    </a>
-
-    <div class="divider">ou</div>
-
     <div class="login-form">
       {% if form.errors %}
       <div class="login-error">Identifiants incorrects. Réessaie.</div>
@@ -219,6 +213,12 @@
         <button type="submit" class="btn-submit">Se connecter</button>
       </form>
     </div>
+
+    <div class="divider">ou</div>
+
+    <a href="/oauth/nextcloud/login/" class="btn-nc">
+      ☁&thinsp; Continuer avec Neovillage
+    </a>
 
     <p class="login-footer">
       Pas encore de compte ?
