@@ -26,16 +26,16 @@ input:focus{outline:none;border-color:#e8a948}
 .lien-connexion a{color:#2a1f17;font-weight:600}
 hr{border:none;border-top:1px solid #e0d8d0;margin:1.4rem 0}
 
-/* ── Sélecteur VIRGA ── */
-.virga-grille{display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.25rem}
-.virga-pos{flex:0 0 auto;text-align:center}
-.virga-pos-num{font-size:.72rem;color:#a8916f;margin-bottom:.3rem;font-weight:600}
-.virga-glyphes{display:flex;flex-direction:column;gap:.28rem}
+/* ── Sélecteur Bidoo ── */
+.bidoo-grille{display:flex;gap:.5rem;overflow-x:auto;padding-bottom:.25rem}
+.bidoo-pos{flex:0 0 auto;text-align:center}
+.bidoo-pos-num{font-size:.72rem;color:#a8916f;margin-bottom:.3rem;font-weight:600}
+.bidoo-glyphes{display:flex;flex-direction:column;gap:.28rem}
 .g-btn{width:50px;height:50px;border:2px solid #d9cfc5;border-radius:8px;background:#fff;font-size:1.3rem;cursor:pointer;transition:border-color .1s,background .1s;color:#2a1f17;display:flex;align-items:center;justify-content:center}
 .g-btn:hover{border-color:#e8a948;background:#fdf8f0}
 .g-btn.sel{border-color:#e8a948;background:#e8a948;color:#2a1f17;font-weight:700}
-.virga-apercu{margin-top:.7rem;padding:.45rem .8rem;background:#2a1f17;color:#e8a948;border-radius:6px;font-size:1rem;letter-spacing:.1em;text-align:center;min-height:2rem;font-weight:600}
-.virga-apercu.incomplet{color:#a8916f;font-size:.82rem;letter-spacing:0;font-style:italic}
+.bidoo-apercu{margin-top:.7rem;padding:.45rem .8rem;background:#2a1f17;color:#e8a948;border-radius:6px;font-size:1rem;letter-spacing:.1em;text-align:center;min-height:2rem;font-weight:600}
+.bidoo-apercu.incomplet{color:#a8916f;font-size:.82rem;letter-spacing:0;font-style:italic}
 
 /* ── Étape 2 : accueil ── */
 .bonjour{background:#2a1f17;color:#f2e6d2;border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.3rem;text-align:center}
@@ -83,11 +83,11 @@ hr{border:none;border-top:1px solid #e0d8d0;margin:1.4rem 0}
     <div class="champ">
       <div style="display:flex;align-items:flex-start;gap:1rem;flex-wrap:wrap">
         <div>
-          <div class="virga-grille" id="grille-lot"></div>
+          <div class="bidoo-grille" id="grille-lot"></div>
         </div>
         <div style="font-size:1.3rem;color:#d9cfc5;padding-top:.5rem">·</div>
         <div>
-          <div class="virga-grille" id="grille-unite"></div>
+          <div class="bidoo-grille" id="grille-unite"></div>
         </div>
       </div>
     </div>
@@ -109,7 +109,7 @@ hr{border:none;border-top:1px solid #e0d8d0;margin:1.4rem 0}
   <form method="post">
     {% csrf_token %}
     <input type="hidden" name="etape" value="2">
-    <input type="hidden" name="virga_num" value="{{ virga_num }}">
+    <input type="hidden" name="bidoo_num" value="{{ bidoo_num }}">
 
     <div class="champ">
       <label for="temp_pass">Mot de passe temporaire <span class="label-hint">— reçu avec ton Bidoo</span></label>
@@ -152,9 +152,9 @@ function construireGrille(conteneurId, positions) {
   if (!cont) return;
   positions.forEach(pos => {
     const col = document.createElement('div');
-    col.className = 'virga-pos';
-    col.innerHTML = `<div class="virga-glyphes"></div>`;
-    const glDiv = col.querySelector('.virga-glyphes');
+    col.className = 'bidoo-pos';
+    col.innerHTML = `<div class="bidoo-glyphes"></div>`;
+    const glDiv = col.querySelector('.bidoo-glyphes');
     GLYPHES.forEach((g, val) => {
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -178,7 +178,7 @@ function selGlyphe(pos, val) {
   document.querySelector('[data-pos="'+pos+'"][data-val="'+val+'"]').classList.add('sel');
   document.getElementById('p'+(pos+1)).value = val;
   const complet = sel.every(v => v !== null);
-  const apercu = document.getElementById('virga-apercu');
+  const apercu = document.getElementById('bidoo-apercu');
   if (apercu) {
     const lot   = sel.slice(0,3).map(v => v===null?'?':GLYPHES[v]).join('');
     const unite = sel.slice(3,6).map(v => v===null?'?':GLYPHES[v]).join('');

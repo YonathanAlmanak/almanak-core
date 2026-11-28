@@ -139,9 +139,9 @@ def home(request):
 GLYPHES = ['∅', '|', '∧', '✕', '⊏', '⋈']
 CTX_BASE = {"glyphes": GLYPHES}
 
-# VIRGA : 6 positions en 2 groupes de 3 (Lot · Unité), base 6
+# Code Bidoo : 6 positions en 2 groupes de 3 (Lot · Unité), base 6
 # num ∈ [1, 46 656]  (6^6)
-def _virga_num(p1, p2, p3, p4, p5, p6):
+def _bidoo_num(p1, p2, p3, p4, p5, p6):
     return p1*7776 + p2*1296 + p3*216 + p4*36 + p5*6 + p6 + 1
 
 
@@ -158,7 +158,7 @@ def rejoindre(request):
 
     etape = request.POST.get("etape", "1")
 
-    # ── Étape 1 : vérifier le code VIRGA ─────────────────────────────────────
+    # ── Étape 1 : vérifier le code Bidoo ─────────────────────────────────────
     if etape == "1":
         p1, p2, p3 = _int_pos("p1"), _int_pos("p2"), _int_pos("p3")
         p4, p5, p6 = _int_pos("p4"), _int_pos("p5"), _int_pos("p6")
@@ -167,9 +167,9 @@ def rejoindre(request):
             return render(request, "rejoindre.html", {**CTX_BASE, "erreur": msg})
 
         if any(x is None for x in [p1, p2, p3, p4, p5, p6]):
-            return err1("Code VIRGA incomplet — sélectionne les 6 glyphes.")
+            return err1("Code Bidoo incomplet — sélectionne les 6 glyphes.")
 
-        num = _virga_num(p1, p2, p3, p4, p5, p6)
+        num = _bidoo_num(p1, p2, p3, p4, p5, p6)
 
         if not REGISTRE_BIDOO.exists():
             return err1("Registre introuvable — contacter l'administrateur.")
@@ -177,25 +177,25 @@ def rejoindre(request):
         entree = next((b for b in registre.get("emis", []) if int(b["virga"]) == num), None)
 
         if not entree:
-            return err1("Ce code VIRGA ne correspond à aucun Bidoo émis.")
+            return err1("Ce code Bidoo ne correspond à aucun Bidoo émis.")
         if entree.get("utilise"):
             return err1("Ce Bidoo a déjà été utilisé pour créer un compte.")
 
         return render(request, "rejoindre.html", {
             **CTX_BASE,
             "prenom":    entree.get("prenom", ""),
-            "virga_num": num,
+            "bidoo_num": num,
         })
 
     # ── Étape 2 : créer le compte ─────────────────────────────────────────────
-    virga_num_str = request.POST.get("virga_num", "")
+    bidoo_num_str = request.POST.get("bidoo_num", "")
     username  = request.POST.get("username", "").strip()
     password  = request.POST.get("password", "").strip()
     email     = request.POST.get("email", "").strip()
     temp_pass = request.POST.get("temp_pass", "").strip()
 
     try:
-        num = int(virga_num_str)
+        num = int(bidoo_num_str)
         assert 1 <= num <= 46656
     except Exception:
         return render(request, "rejoindre.html", {**CTX_BASE, "erreur": "Session expirée. Recommence depuis le début."})
@@ -206,7 +206,7 @@ def rejoindre(request):
     entree = next((b for b in registre.get("emis", []) if int(b["virga"]) == num), None)
 
     prenom = entree.get("prenom", "") if entree else ""
-    ctx2 = {**CTX_BASE, "prenom": prenom, "virga_num": num,
+    ctx2 = {**CTX_BASE, "prenom": prenom, "bidoo_num": num,
             "username": username, "email": email}
 
     def err2(msg):
@@ -432,18 +432,18 @@ def api_question_repondre(request):
 
 # ── Admin Bidoo ───────────────────────────────────────────────────────────────
 
-GLYPHES_VIRGA = ['∅', '|', '∧', '✕', '⊏', '⋈']
+GLYPHES_BIDOO = ['∅', '|', '∧', '✕', '⊏', '⋈']
 
 
-def _virga_vers_glyphes(num):
+def _bidoo_vers_glyphes(num):
     n = num - 1
     p = [n//7776, (n%7776)//1296, (n%1296)//216, (n%216)//36, (n%36)//6, n%6]
-    lot   = ''.join(GLYPHES_VIRGA[x] for x in p[:3])
-    unite = ''.join(GLYPHES_VIRGA[x] for x in p[3:])
+    lot   = ''.join(GLYPHES_BIDOO[x] for x in p[:3])
+    unite = ''.join(GLYPHES_BIDOO[x] for x in p[3:])
     return f"{lot} · {unite}"
 
 
-def _prochain_virga(registre):
+def _prochain_bidoo(registre):
     utilises = {int(b["virga"]) for b in registre.get("emis", [])}
     for n in range(1, 46657):
         if n not in utilises:
@@ -452,7 +452,7 @@ def _prochain_virga(registre):
 
 
 def _enrichir_bidoo(b):
-    return {**b, "code": _virga_vers_glyphes(int(b["virga"]))}
+    return {**b, "code": _bidoo_vers_glyphes(int(b["virga"]))}
 
 
 def admin_bidoo(request):
@@ -486,19 +486,19 @@ def admin_bidoo(request):
             if not prenom:
                 erreur = "Le prénom est requis."
             elif any(x is None for x in ps):
-                erreur = "Sélectionne les 6 glyphes du code VIRGA."
+                erreur = "Sélectionne les 6 glyphes du Bidoo."
             else:
                 p1, p2, p3, p4, p5, p6 = ps
-                num = _virga_num(p1, p2, p3, p4, p5, p6)
+                num = _bidoo_num(p1, p2, p3, p4, p5, p6)
                 registre = _lire_json(REGISTRE_BIDOO, {"emis": []})
                 deja = any(int(b["virga"]) == num for b in registre.get("emis", []))
                 if deja:
-                    erreur = f"Le code {_virga_vers_glyphes(num)} est déjà attribué."
+                    erreur = f"Le code {_bidoo_vers_glyphes(num)} est déjà attribué."
                 else:
                     temp = secrets.token_urlsafe(8)
                     registre["emis"].append({"virga": num, "prenom": prenom, "temp_pass": temp, "utilise": False})
                     _ecrire_json(REGISTRE_BIDOO, registre)
-                    flash = f"Bidoo créé pour {prenom} · Code : {_virga_vers_glyphes(num)} · Temp : {temp}"
+                    flash = f"Bidoo créé pour {prenom} · Code : {_bidoo_vers_glyphes(num)} · Temp : {temp}"
 
     registre = _lire_json(REGISTRE_BIDOO, {"emis": []})
     tous = [_enrichir_bidoo(b) for b in registre.get("emis", [])]

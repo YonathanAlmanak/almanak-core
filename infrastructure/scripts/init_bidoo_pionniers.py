@@ -4,6 +4,7 @@ Usage sur le serveur :
   python /opt/almanak/current/infrastructure/scripts/init_bidoo_pionniers.py /opt/almanak/data/pionniers_import.json
 
 Le fichier JSON doit contenir : {"emis": [{virga, prenom, temp_pass, utilise}, ...]}
+("virga" = numéro interne du Bidoo dans le registre JSON, champ maintenu pour compatibilité)
 Les entrées déjà présentes (même virga) sont ignorées.
 """
 import json, sys
@@ -12,7 +13,7 @@ from pathlib import Path
 REGISTRE = Path("/opt/almanak/data/registre_bidoo.json")
 GLYPHES = ['∅', '|', '∧', '✕', '⊏', '⋈']
 
-def virga_code(num):
+def bidoo_code(num):
     n = num - 1
     return ' '.join(GLYPHES[x] for x in [n//216, (n%216)//36, (n%36)//6, n%6])
 
@@ -30,7 +31,7 @@ for p in import_data.get("emis", []):
     if int(p["virga"]) not in existants:
         registre["emis"].append(p)
         ajoutes += 1
-        print(f"  + Bidoo #{p['virga']} ({virga_code(p['virga'])}) — {p['prenom']}")
+        print(f"  + Bidoo #{p['virga']} ({bidoo_code(p['virga'])}) — {p['prenom']}")
     else:
         print(f"  ~ Bidoo #{p['virga']} déjà présent, ignoré")
 

@@ -24,19 +24,19 @@ input:focus{outline:none;border-color:#e8a948}
 .btn{padding:.5rem 1.2rem;border:none;border-radius:7px;font-size:.93rem;cursor:pointer;font-family:inherit;font-weight:600}
 .btn-or{background:#e8a948;color:#2a1f17}.btn-or:hover{background:#d4953a}
 
-/* Sélecteur VIRGA 2×3 */
-.virga-wrap{display:flex;align-items:flex-start;gap:1.2rem;flex-wrap:wrap}
-.virga-groupe{display:flex;flex-direction:column;gap:.3rem}
-.virga-groupe-label{font-size:.72rem;color:#a8916f;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
-.virga-glyphes-row{display:flex;gap:.4rem}
-.virga-pos{display:flex;flex-direction:column;gap:.3rem}
-.virga-pos-num{font-size:.68rem;color:#a8916f;text-align:center;font-weight:600}
+/* Sélecteur Bidoo 2×3 */
+.bidoo-wrap{display:flex;align-items:flex-start;gap:1.2rem;flex-wrap:wrap}
+.bidoo-groupe{display:flex;flex-direction:column;gap:.3rem}
+.bidoo-groupe-label{font-size:.72rem;color:#a8916f;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.bidoo-glyphes-row{display:flex;gap:.4rem}
+.bidoo-pos{display:flex;flex-direction:column;gap:.3rem}
+.bidoo-pos-num{font-size:.68rem;color:#a8916f;text-align:center;font-weight:600}
 .g-btn{width:44px;height:44px;border:2px solid #d9cfc5;border-radius:7px;background:#fff;font-size:1.2rem;cursor:pointer;color:#2a1f17;display:flex;align-items:center;justify-content:center;transition:border-color .1s,background .1s}
 .g-btn:hover{border-color:#e8a948;background:#fdf8f0}
 .g-btn.sel{border-color:#e8a948;background:#e8a948;font-weight:700}
-.virga-sep{font-size:1.4rem;color:#d9cfc5;align-self:center;padding-top:1.4rem}
-.virga-apercu{margin-top:.7rem;padding:.4rem .9rem;background:#2a1f17;color:#e8a948;border-radius:6px;font-size:1rem;letter-spacing:.15em;text-align:center;font-weight:700;font-family:monospace;min-height:2.1rem}
-.virga-apercu.incomplet{color:#a8916f;font-size:.8rem;letter-spacing:0;font-style:italic;font-weight:400}
+.bidoo-sep{font-size:1.4rem;color:#d9cfc5;align-self:center;padding-top:1.4rem}
+.bidoo-apercu{margin-top:.7rem;padding:.4rem .9rem;background:#2a1f17;color:#e8a948;border-radius:6px;font-size:1rem;letter-spacing:.15em;text-align:center;font-weight:700;font-family:monospace;min-height:2.1rem}
+.bidoo-apercu.incomplet{color:#a8916f;font-size:.8rem;letter-spacing:0;font-style:italic;font-weight:400}
 
 /* Table */
 .section-titre{font-size:.82rem;font-weight:700;color:#a8916f;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem;margin-top:.3rem}
@@ -48,7 +48,7 @@ tr.utilise td{color:#a8916f}
 .badge{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:700}
 .badge-libre{background:#e6f7ee;color:#1a7a3d}
 .badge-utilise{background:#f0ebe4;color:#a8916f}
-.virga-code{font-size:1.05rem;letter-spacing:.12em;font-weight:700;color:#e8a948;font-family:monospace}
+.bidoo-code{font-size:1.05rem;letter-spacing:.12em;font-weight:700;color:#e8a948;font-family:monospace}
 .copier-lien{font-size:.78rem;color:#a8916f;cursor:pointer;text-decoration:underline}
 
 .flash{background:#e6f7ee;border:1px solid #a3d9b6;color:#1a5c33;padding:.5rem .9rem;border-radius:6px;font-size:.85rem;margin-bottom:1rem}
@@ -107,19 +107,19 @@ tr.utilise td{color:#a8916f}
     </div>
 
     <div style="margin-bottom:.6rem">
-      <div style="font-size:.82rem;font-weight:600;margin-bottom:.7rem">Code VIRGA</div>
-      <div class="virga-wrap">
-        <div class="virga-groupe">
-          <div class="virga-groupe-label">Lot</div>
-          <div class="virga-glyphes-row" id="groupe-lot"></div>
+      <div style="font-size:.82rem;font-weight:600;margin-bottom:.7rem">Code Bidoo</div>
+      <div class="bidoo-wrap">
+        <div class="bidoo-groupe">
+          <div class="bidoo-groupe-label">Lot</div>
+          <div class="bidoo-glyphes-row" id="groupe-lot"></div>
         </div>
-        <div class="virga-sep">·</div>
-        <div class="virga-groupe">
-          <div class="virga-groupe-label">Unité</div>
-          <div class="virga-glyphes-row" id="groupe-unite"></div>
+        <div class="bidoo-sep">·</div>
+        <div class="bidoo-groupe">
+          <div class="bidoo-groupe-label">Unité</div>
+          <div class="bidoo-glyphes-row" id="groupe-unite"></div>
         </div>
       </div>
-      <div class="virga-apercu incomplet" id="apercu">Sélectionne les 6 glyphes</div>
+      <div class="bidoo-apercu incomplet" id="apercu">Sélectionne les 6 glyphes</div>
     </div>
 
     <button type="submit" class="btn btn-or" id="btn-emettre" disabled>Émettre →</button>
@@ -129,12 +129,12 @@ tr.utilise td{color:#a8916f}
 {% if libres %}
 <div class="section-titre">À remettre ({{ libres|length }})</div>
 <table>
-  <thead><tr><th>#</th><th>Code VIRGA</th><th>Prénom</th><th>Mot de passe temp.</th><th>Statut</th><th></th></tr></thead>
+  <thead><tr><th>#</th><th>Code Bidoo</th><th>Prénom</th><th>Mot de passe temp.</th><th>Statut</th><th></th></tr></thead>
   <tbody>
   {% for b in libres %}
     <tr>
       <td>{{ b.virga }}</td>
-      <td><span class="virga-code">{{ b.code }}</span></td>
+      <td><span class="bidoo-code">{{ b.code }}</span></td>
       <td>{{ b.prenom }}</td>
       <td><code>{{ b.temp_pass }}</code></td>
       <td><span class="badge badge-libre">Libre</span></td>
@@ -148,12 +148,12 @@ tr.utilise td{color:#a8916f}
 {% if utilises %}
 <div class="section-titre">Utilisés ({{ utilises|length }})</div>
 <table>
-  <thead><tr><th>#</th><th>Code VIRGA</th><th>Prénom</th><th>Compte</th><th>Statut</th></tr></thead>
+  <thead><tr><th>#</th><th>Code Bidoo</th><th>Prénom</th><th>Compte</th><th>Statut</th></tr></thead>
   <tbody>
   {% for b in utilises %}
     <tr class="utilise">
       <td>{{ b.virga }}</td>
-      <td><span class="virga-code">{{ b.code }}</span></td>
+      <td><span class="bidoo-code">{{ b.code }}</span></td>
       <td>{{ b.prenom }}</td>
       <td>{{ b.nc_username|default:"—" }}</td>
       <td><span class="badge badge-utilise">Utilisé</span></td>
@@ -174,8 +174,8 @@ function construireGroupe(conteneurId, positions) {
   const cont = document.getElementById(conteneurId);
   positions.forEach(pos => {
     const col = document.createElement('div');
-    col.className = 'virga-pos';
-    col.innerHTML = `<div class="virga-pos-num">${pos+1}</div>`;
+    col.className = 'bidoo-pos';
+    col.innerHTML = `<div class="bidoo-pos-num">${pos+1}</div>`;
     GLYPHES.forEach((g, val) => {
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -218,7 +218,7 @@ function mettreAJourApercu() {
 }
 
 function copier(prenom, code, temp) {
-  const texte = `Bonjour ${prenom} !\n\nTon invitation à rejoindre l'Almanak Néovillage :\n\n• Page : https://almanak.neovillage.org/rejoindre/\n• Code VIRGA : ${code}\n• Mot de passe temporaire : ${temp}\n\nÀ bientôt dans le village !`;
+  const texte = `Bonjour ${prenom} !\n\nTon invitation à rejoindre l'Almanak Néovillage :\n\n• Page : https://almanak.neovillage.org/rejoindre/\n• Code Bidoo : ${code}\n• Mot de passe temporaire : ${temp}\n\nÀ bientôt dans le village !`;
   navigator.clipboard.writeText(texte).then(() => {
     event.target.textContent = '✓ Copié !';
     setTimeout(() => event.target.textContent = 'Copier invitation', 2000);
