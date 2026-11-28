@@ -1,6 +1,9 @@
+import requests as _http
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.http import require_http_methods
@@ -28,6 +31,26 @@ def _profil(user):
 
 
 NC_BASE = "https://atelier.neovillage.org"
+
+
+def _talk_iframe_ok(nc_server: str) -> bool:
+    """Renvoie True si atelier.neovillage.org accepte l'embedding dans un iframe.
+    Résultat mis en cache 1 heure pour éviter la latence à chaque requête."""
+    cache_key = f"talk_iframe_ok_{nc_server}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+    try:
+        r = _http.head(
+            f"https://{nc_server}/apps/spreed/",
+            timeout=3, allow_redirects=True,
+        )
+        xfo = r.headers.get("X-Frame-Options", "").upper()
+        result = "DENY" not in xfo and "SAMEORIGIN" not in xfo
+    except Exception:
+        result = False
+    cache.set(cache_key, result, 3600)
+    return result
 
 
 VOUTE_STRUCTURE = ["1-Inbox", "2-Projects", "3-Casquettes", "4-Resources", "5-Archives"]
@@ -313,6 +336,7 @@ def messages(request):
         "profile": profile,
         "talk_messages_url": talk_messages_url,
         "talk_messages_lien": talk_messages_lien,
+        "iframe_ok": _talk_iframe_ok(nc_server),
     })
 
 

@@ -90,6 +90,7 @@
 </div>
 
 <div class="talk-cadre-messages">
+{% if iframe_ok %}
   <iframe
     id="talk-messages-iframe"
     class="talk-iframe-messages"
@@ -98,28 +99,18 @@
     allowfullscreen
     title="Messagerie Talk"
   ></iframe>
-  <div class="talk-fallback-messages" id="talk-messages-fallback">
-    <p>L'interface de messagerie s'ouvre dans Nextcloud.<br>Connecte-toi à Nextcloud pour accéder à tes conversations.</p>
+{% else %}
+  <div class="talk-fallback-messages" style="display:flex">
+    <p>Ouvre la messagerie dans Nextcloud Talk pour accéder à tes conversations directes.</p>
     <a href="{{ talk_messages_lien }}" target="_blank" rel="noopener" class="btn-ouvrir-talk">
-      Ouvrir la messagerie →
+      Ouvrir dans Nextcloud →
     </a>
   </div>
+{% endif %}
 </div>
 
 <p class="messages-hint">
   Pour écrire à un pionnier : visite <a href="/pionniers/">son profil</a> et clique « Envoyer un message ».
 </p>
-
-<script>
-(function() {
-  const iframe = document.getElementById('talk-messages-iframe');
-  const fallback = document.getElementById('talk-messages-fallback');
-  const timer = setTimeout(() => {
-    iframe.style.display = 'none';
-    fallback.style.display = 'flex';
-  }, 4000);
-  iframe.addEventListener('load', () => clearTimeout(timer));
-})();
-</script>
 
 {% endblock %}
