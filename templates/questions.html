@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+{% block title %}Questions du jour — Almanak{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ── En-tête ── */
+  .qdj-entete {
+    padding: 2rem 0 1.4rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 1.8rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .qdj-titre {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    font-size: 1.7rem;
+    margin: 0 0 .3rem;
+  }
+  .qdj-sous-titre {
+    font-size: .88rem;
+    color: var(--ink-soft);
+    margin: 0;
+    max-width: 480px;
+    line-height: 1.6;
+  }
+  .qdj-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .6rem 1.2rem;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 8px;
+    font-size: .9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background .15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .qdj-cta:hover { background: #2f4c35; }
+
+  /* ── Filtres par question ── */
+  .qdj-filtres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: 1.6rem;
+  }
+  .qdj-filtre {
+    display: inline-block;
+    padding: .35rem .9rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-soft);
+    font-size: .8rem;
+    text-decoration: none;
+    transition: all .12s;
+    white-space: nowrap;
+  }
+  .qdj-filtre:hover { border-color: var(--accent); color: var(--accent); }
+  .qdj-filtre.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* ── Grille de cartes ── */
+  .qdj-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.2rem;
+  }
+
+  /* ── Carte réponse ── */
+  .qdj-carte {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .qdj-carte:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(43,74,50,.1);
+  }
+
+  /* Vidéo ou placeholder */
+  .qdj-media {
+    position: relative;
+    aspect-ratio: 9/5;
+    background: #1a120c;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .qdj-media video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .qdj-media-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background: linear-gradient(135deg, #e8f0e9 0%, var(--or-pale) 100%);
+  }
+  .qdj-citation-grande {
+    font-family: "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--ink);
+    text-align: center;
+    padding: 1.2rem;
+    line-height: 1.5;
+    max-width: 240px;
+    position: relative;
+  }
+  .qdj-citation-grande::before {
+    content: "«";
+    display: block;
+    font-size: 2.4rem;
+    color: var(--accent);
+    line-height: .8;
+    margin-bottom: .3rem;
+    font-style: normal;
+  }
+
+  /* Corps de la carte */
+  .qdj-corps {
+    padding: 1rem 1.1rem .8rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+  }
+  .qdj-question-label {
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .qdj-question-texte {
+    font-size: .88rem;
+    color: var(--ink-soft);
+    line-height: 1.4;
+    font-style: italic;
+  }
+  .qdj-texte-reponse {
+    font-size: .9rem;
+    color: var(--ink);
+    line-height: 1.6;
+    flex: 1;
+  }
+  .qdj-pied {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .7rem 1.1rem;
+    border-top: 1px solid var(--line);
+    background: var(--bg);
+  }
+  .qdj-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--line);
+  }
+  .qdj-avatar-initiale {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: .75rem; color: var(--accent);
+    flex-shrink: 0;
+  }
+  .qdj-pied-info { flex: 1; min-width: 0; }
+  .qdj-pied-nom {
+    font-weight: 600;
+    font-size: .82rem;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .qdj-pied-nom:hover { color: var(--accent); }
+  .qdj-pied-village {
+    font-size: .72rem;
+    color: var(--ink-soft);
+  }
+  .qdj-pied-date {
+    font-size: .7rem;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  /* Carte vide */
+  .qdj-vide {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--ink-soft);
+  }
+  .qdj-vide p { font-size: .95rem; margin: .5rem 0; }
+  .qdj-vide a { color: var(--accent); }
+
+  /* Bannière "Réponds maintenant" */
+  .qdj-prochaine-banniere {
+    background: var(--or-pale);
+    border: 1px solid #e8d5a3;
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .qdj-prochaine-texte { flex: 1; }
+  .qdj-prochaine-label {
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: #7a5c1e;
+    display: block;
+    margin-bottom: .3rem;
+  }
+  .qdj-prochaine-question {
+    font-size: 1rem;
+    font-family: "Fraunces", Georgia, serif;
+    font-style: italic;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+  .qdj-btn-repondre {
+    display: inline-block;
+    padding: .6rem 1.2rem;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 8px;
+    font-size: .88rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background .15s;
+  }
+  .qdj-btn-repondre:hover { background: #2f4c35; }
+
+  @media (max-width: 600px) {
+    .qdj-grille { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="qdj-entete">
+  <div>
+    <h1 class="qdj-titre">Questions du jour</h1>
+    <p class="qdj-sous-titre">Une question à la fois, pour se connaître vraiment. Réponds en quelques mots — ou en vidéo.</p>
+  </div>
+  {% if user.is_authenticated %}
+  <a href="/questions/repondre/" class="qdj-cta">✦ Répondre</a>
+  {% endif %}
+</div>
+
+{% if user.is_authenticated and prochaine_question %}
+<div class="qdj-prochaine-banniere">
+  <div class="qdj-prochaine-texte">
+    <span class="qdj-prochaine-label">Ta prochaine question</span>
+    <span class="qdj-prochaine-question">{{ prochaine_question.texte }}</span>
+  </div>
+  <a href="/questions/repondre/?q={{ prochaine_question.id }}" class="qdj-btn-repondre">Répondre →</a>
+</div>
+{% endif %}
+
+<div class="qdj-filtres">
+  <a href="/questions/" class="qdj-filtre {% if not q_active %}active{% endif %}">Toutes</a>
+  {% for q in toutes_questions %}
+  <a href="/questions/?q={{ q.id }}" class="qdj-filtre {% if q_active == q.id %}active{% endif %}">{{ q.texte|truncatechars:38 }}</a>
+  {% endfor %}
+</div>
+
+<div class="qdj-grille">
+  {% for rep in reponses %}
+  {% with profil=rep.user.profile %}
+
+  <article class="qdj-carte">
+
+    {% if rep.video %}
+    <div class="qdj-media">
+      <video
+        src="{{ rep.video.url }}"
+        preload="none"
+        {% if rep.thumbnail %}poster="{{ rep.thumbnail.url }}"{% endif %}
+        controls
+        playsinline
+        aria-label="Vidéo de {{ profil.nom_artiste|default:rep.user.username }}"
+      ></video>
+    </div>
+    {% elif rep.citation %}
+    <div class="qdj-media">
+      <div class="qdj-media-placeholder">
+        <div class="qdj-citation-grande">{{ rep.citation }}</div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="qdj-corps">
+      <div>
+        <span class="qdj-question-label">Question</span>
+        <p class="qdj-question-texte">{{ rep.question_texte }}</p>
+      </div>
+      {% if rep.corps %}
+      <p class="qdj-texte-reponse">{{ rep.corps|linebreaksbr|truncatechars_html:300 }}</p>
+      {% endif %}
+    </div>
+
+    <div class="qdj-pied">
+      {% if profil.photo %}
+        <img src="{{ profil.photo.url }}" alt="" class="qdj-avatar">
+      {% else %}
+        <div class="qdj-avatar-initiale">{{ profil.nom_artiste|default:rep.user.username|slice:":1"|upper }}</div>
+      {% endif %}
+      <div class="qdj-pied-info">
+        <a href="/p/{{ rep.user.username }}/" class="qdj-pied-nom">{{ profil.nom_artiste|default:rep.user.username }}</a>
+        {% if profil.village %}<div class="qdj-pied-village">📍 {{ profil.village }}</div>{% endif %}
+      </div>
+      <span class="qdj-pied-date">{{ rep.created|date:"j M Y" }}</span>
+    </div>
+
+  </article>
+
+  {% empty %}
+  <div class="qdj-vide">
+    <p style="font-size:1.6rem">✦</p>
+    <p>Personne n'a encore répondu à cette question.<br>Sois le premier !</p>
+    {% if user.is_authenticated %}
+    <p><a href="/questions/repondre/{% if q_active %}?q={{ q_active }}{% endif %}">Répondre →</a></p>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

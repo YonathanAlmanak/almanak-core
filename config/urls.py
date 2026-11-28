@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 from profiles.views import (
     profil, voutes, reglages, onboarding, profil_public,
     pionniers, messages, conversation, api_envoyer_message,
+    questions, repondre_qdj,
     notifications, api_notifs_lues,
     api_vouch, api_unvouch,
     api_photo_upload, api_banniere_upload,
@@ -529,6 +530,8 @@ urlpatterns = [
     path("messages/", messages, name="messages"),
     path("messages/<str:username>/", conversation, name="conversation"),
     path("api/messages/<str:username>/envoyer/", api_envoyer_message),
+    path("questions/", questions, name="questions"),
+    path("questions/repondre/", repondre_qdj, name="repondre_qdj"),
     path("notifications/", notifications, name="notifications"),
     path("api/notifications/lues/", api_notifs_lues),
     path("api/vouch/<str:username>/", api_vouch, name="api_vouch"),

@@ -343,6 +343,34 @@
   }
   .btn-rdv-cal:hover { background: var(--bg); }
 
+  /* ── Mini-carte QDJ dans le panneau droit ── */
+  .qdj-card-mini {
+    display: block;
+    text-decoration: none;
+    background: var(--or-pale);
+    border: 1px solid #e8d5a3;
+    border-radius: 8px;
+    padding: .55rem .7rem;
+    margin-bottom: .4rem;
+    transition: background .12s;
+  }
+  .qdj-card-mini:hover { background: #f7edc8; }
+  .qdj-card-mini-q {
+    display: block;
+    font-size: .7rem;
+    font-weight: 600;
+    color: #7a5c1e;
+    letter-spacing: .02em;
+    margin-bottom: .2rem;
+    line-height: 1.4;
+  }
+  .qdj-card-mini-r {
+    display: block;
+    font-size: .78rem;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+
   /* ── Responsive ── */
   @media (max-width: 860px) {
     .msg-layout { grid-template-columns: 1fr; }
@@ -530,15 +558,35 @@
     </div>
     {% endif %}
 
-    <p class="rdv-section-titre" style="margin-top:.8rem">Réserver un appel</p>
-    <a href="https://cal.com/{{ autre_user.username }}" target="_blank" rel="noopener" class="btn-rdv btn-rdv-cal">
-      📅 Proposer un moment
+    {% if reponses_qdj %}
+    <p class="rdv-section-titre" style="margin-top:.8rem">Questions du jour</p>
+    {% for rep in reponses_qdj %}
+    <a href="/questions/?q={{ rep.question_id }}" class="qdj-card-mini">
+      <span class="qdj-card-mini-q">{{ rep.question_texte }}</span>
+      <span class="qdj-card-mini-r">{{ rep.extrait|truncatechars:90 }}</span>
     </a>
+    {% endfor %}
+    <a href="/questions/{{ autre_user.username }}/" class="btn-rdv btn-rdv-cal" style="margin-top:.4rem">
+      Toutes ses réponses →
+    </a>
+    {% else %}
+    <p class="rdv-section-titre" style="margin-top:.8rem">Questions du jour</p>
+    <p style="font-size:.78rem;color:var(--ink-soft);text-align:center;line-height:1.5">
+      {{ autre_profile.nom_artiste|default:autre_user.username }} n'a pas encore répondu.
+    </p>
+    {% endif %}
+
+    {% if ma_prochaine_question %}
+    <p class="rdv-section-titre" style="margin-top:.8rem">Ta prochaine question</p>
+    <a href="/questions/repondre/?q={{ ma_prochaine_question.id }}" class="btn-rdv btn-rdv-vouch">
+      ✦ {{ ma_prochaine_question.texte|truncatechars:55 }}
+    </a>
+    {% endif %}
 
   {% else %}
     <div class="msg-rdv-vide">
       <span style="font-size:1.6rem">✦</span>
-      <p>Les détails du pionnier apparaîtront ici.</p>
+      <p>Les réponses du pionnier apparaîtront ici.</p>
     </div>
   {% endif %}
   </aside>

@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.http import require_http_methods
 
 from config.nextcloud import nouvelles_groupe, sur_la_table, ecrire_dans_voute
-from .models import UserProfile, Notification, Vouch, Conversation, MessageDirect
+from .models import UserProfile, Notification, Vouch, Conversation, MessageDirect, ReponseQDJ, QUESTIONS_QDJ
 
 PIONNIER_ROOM = "b5zpbo3j"
 
@@ -440,6 +440,11 @@ def conversation(request, username):
     except Exception:
         vouch_donne = False
 
+    reponses_qdj = list(
+        ReponseQDJ.objects.filter(user=autre_user, publie=True).order_by('-created')[:3]
+    )
+    ma_prochaine_question = _prochaine_question(request.user)
+
     return render(request, "messages.html", {
         "conv_list": conv_list,
         "conversation_active": conv,
@@ -448,6 +453,8 @@ def conversation(request, username):
         "messages_fil": messages_fil,
         "carte_intro": carte_intro,
         "vouch_donne": vouch_donne,
+        "reponses_qdj": reponses_qdj,
+        "ma_prochaine_question": ma_prochaine_question,
     })
 
 
@@ -548,4 +555,95 @@ def reglages(request):
     return render(request, "reglages.html", {
         "profile": profile,
         "section_active": section_active,
+    })
+
+
+# ── Questions du jour (Vox Pop interne) ──────────────────────────────────────
+
+def _question_par_id(qid):
+    return next((q for q in QUESTIONS_QDJ if q['id'] == qid), None)
+
+
+def _prochaine_question(user):
+    """Retourne la prochaine question sans réponse pour cet utilisateur."""
+    repondues = set(
+        ReponseQDJ.objects.filter(user=user).values_list('question_id', flat=True)
+    )
+    for q in QUESTIONS_QDJ:
+        if q['id'] not in repondues:
+            return q
+    return None
+
+
+def questions(request):
+    """Feed TikTok-style des réponses publiées."""
+    reponses = (
+        ReponseQDJ.objects.filter(publie=True)
+        .select_related('user__profile')
+        .order_by('-created')[:60]
+    )
+    prochaine = None
+    if request.user.is_authenticated:
+        prochaine = _prochaine_question(request.user)
+    if prochaine is None:
+        prochaine = QUESTIONS_QDJ[0]
+
+    q_active = request.GET.get('q')
+    if q_active:
+        reponses = reponses.filter(question_id=q_active)
+
+    return render(request, 'questions.html', {
+        'reponses': reponses,
+        'prochaine_question': prochaine,
+        'toutes_questions': QUESTIONS_QDJ,
+        'q_active': q_active,
+    })
+
+
+@login_required
+def repondre_qdj(request):
+    qid = request.POST.get('question_id') or request.GET.get('q', QUESTIONS_QDJ[0]['id'])
+    question = _question_par_id(qid)
+    if not question:
+        return redirect('/questions/')
+
+    if request.method == 'POST':
+        corps = request.POST.get('corps', '').strip()[:1200]
+        citation = request.POST.get('citation', '').strip()[:280]
+        video = request.FILES.get('video')
+
+        if not corps and not video:
+            return render(request, 'repondre_qdj.html', {
+                'question': question,
+                'toutes_questions': QUESTIONS_QDJ,
+                'erreur': 'Écris ta réponse ou envoie une vidéo.',
+            })
+
+        defaults = {
+            'question_texte': question['texte'],
+            'corps': corps,
+            'citation': citation or corps[:180],
+            'publie': True,
+        }
+        rep, created = ReponseQDJ.objects.get_or_create(
+            user=request.user,
+            question_id=qid,
+            defaults=defaults,
+        )
+        if not created:
+            rep.corps = corps
+            rep.citation = citation or corps[:180]
+            if video:
+                rep.video = video
+            rep.save()
+
+        messages.success(request, "Réponse publiée ✦")
+        return redirect('/questions/')
+
+    # GET — afficher le formulaire
+    existante = ReponseQDJ.objects.filter(user=request.user, question_id=qid).first()
+    return render(request, 'repondre_qdj.html', {
+        'question': question,
+        'toutes_questions': QUESTIONS_QDJ,
+        'existante': existante,
     })

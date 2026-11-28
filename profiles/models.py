@@ -102,6 +102,46 @@ class MessageDirect(models.Model):
         return f"[{self.auteur.username}] {self.corps[:60]}"
 
 
+QUESTIONS_QDJ = [
+    {"id": "medaille",  "texte": "Quel voisin mérite une médaille, et pourquoi ?"},
+    {"id": "ici",       "texte": "Qu'est-ce qui te garde ici, dans ton village ?"},
+    {"id": "matin",     "texte": "Qu'est-ce qui te fait sortir du lit le matin ?"},
+    {"id": "projet",    "texte": "Un projet qui te tient à cœur en ce moment ?"},
+    {"id": "cherche",   "texte": "Qu'est-ce que tu cherches comme collaborateurs ou alliés ?"},
+    {"id": "fierte",    "texte": "Quelle est ta plus grande fierté de la dernière année ?"},
+    {"id": "vision",    "texte": "Dans dix ans, à quoi ressemble ton village idéal ?"},
+    {"id": "obstacle",  "texte": "Quel est le plus grand obstacle que tu as surmonté ?"},
+    {"id": "offre",     "texte": "Qu'est-ce que tu peux offrir à ton réseau de confiance ?"},
+    {"id": "renaissance", "texte": "Si tu pouvais rebâtir une chose dans ton village, ce serait quoi ?"},
+]
+
+
+class ReponseQDJ(models.Model):
+    """Réponse d'un pionnier à une Question du jour (texte ou vidéo)."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reponses_qdj')
+    question_id = models.CharField(max_length=50)
+    question_texte = models.CharField(max_length=300)
+    corps = models.TextField(blank=True)
+    citation = models.CharField(max_length=280, blank=True)
+    video = models.FileField(upload_to='qdj/videos/', blank=True)
+    thumbnail = models.ImageField(upload_to='qdj/thumbnails/', blank=True)
+    publie = models.BooleanField(default=True)
+    created = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['-created']
+        unique_together = ('user', 'question_id')
+
+    def type_reponse(self):
+        return 'video' if self.video else 'texte'
+
+    def extrait(self):
+        return self.citation or (self.corps[:160] + '…' if len(self.corps) > 160 else self.corps)
+
+    def __str__(self):
+        return f"[{self.user.username}] {self.question_id}"
+
+
 class Notification(models.Model):
     NOUVEAU_PIONNIER = 'nouveau_pionnier'
     BABILLARD = 'babillard'
