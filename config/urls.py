@@ -18,6 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
 from django.conf.urls.static import static
+from config.nextcloud import creer_voute_pioneer
 from profiles.views import (
     profil, voutes, reglages, onboarding, profil_public,
     pionniers, messages, conversation, api_envoyer_message,
@@ -233,7 +234,7 @@ def rejoindre(request):
     entree["nc_username"] = username
     entree["temp_pass"]   = ""
     _ecrire_json(REGISTRE_BIDOO, registre)
-    _nc_init_voute(username, password)
+    creer_voute_pioneer(username)
     return redirect("/oauth/nextcloud/login/")
 
 
@@ -293,7 +294,10 @@ def oauth_nextcloud_callback(request):
     profile, _ = UserProfile.objects.get_or_create(user=user)
     if not profile.nc_username:
         profile.nc_username = username
-        profile.save()
+    if not profile.voute_initialisee:
+        creer_voute_pioneer(username)
+        profile.voute_initialisee = True
+    profile.save()
     if created:
         notifier_nouveau_pionnier(user)
     auth_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
