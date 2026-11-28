@@ -350,13 +350,13 @@
       {% with nc="https://"|add:profile.nc_server %}
       <div class="voute-dossiers">
         {% for dossier in voute_dossiers %}
-        <a class="voute-dossier-lien" href="{{ nc }}/apps/files/?dir=/{{ dossier }}" target="_blank" rel="noopener">
-          <span class="voute-dossier-icone">{{ dossier|first }}</span>
-          {{ dossier }}
+        <a class="voute-dossier-lien" href="{{ nc }}/apps/files/?dir=/Almanak/{{ dossier }}" target="_blank" rel="noopener">
+          <span class="voute-dossier-icone">{{ dossier|slice:"2:3" }}</span>
+          {{ dossier|slice:"2:" }}
         </a>
         {% endfor %}
       </div>
-      <a class="voute-ouvrir" href="{{ nc }}/apps/files/" target="_blank" rel="noopener">Ouvrir ma voûte →</a>
+      <a class="voute-ouvrir" href="{{ nc }}/apps/files/?dir=/Almanak" target="_blank" rel="noopener">Ouvrir ma voûte →</a>
       {% endwith %}
     {% else %}
       <p class="placeholder-bientot">

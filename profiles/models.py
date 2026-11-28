@@ -35,6 +35,9 @@ class UserProfile(models.Model):
     # Widgets masqués sur le tableau de bord (IDs séparés par des virgules)
     widgets_caches = models.CharField(max_length=500, blank=True, default='')
 
+    # Voûte Nextcloud — True si la structure Almanak/ a été créée
+    voute_initialisee = models.BooleanField(default=False)
+
     def pourcentage_profil(self):
         champs_texte = ['nom_artiste', 'village', 'bio_courte', 'passions',
                         'experience', 'relations_cherchees', 'offre_culturelle']

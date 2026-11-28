@@ -161,6 +161,11 @@
 
     {% if profile.nc_username %}
     <div class="nc-status liee">✓ Liée à <strong>{{ profile.nc_username }}</strong> sur {{ profile.nc_server }}</div>
+    {% if profile.voute_initialisee %}
+    <div class="nc-status liee" style="margin-top:.5rem">✦ Voûte Almanak/ initialisée</div>
+    {% else %}
+    <div class="nc-status non-liee" style="margin-top:.5rem">Structure de voûte non encore créée — enregistre pour l'initialiser.</div>
+    {% endif %}
     {% else %}
     <div class="nc-status non-liee">Non liée — remplis les champs ci-dessous pour connecter ta voûte.</div>
     {% endif %}

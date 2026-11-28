@@ -11,7 +11,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.http import require_http_methods
 
-from config.nextcloud import nouvelles_groupe, sur_la_table, ecrire_dans_voute
+from config.nextcloud import nouvelles_groupe, sur_la_table, ecrire_dans_voute, creer_voute_pioneer
 from .models import UserProfile, Notification, Vouch, Conversation, MessageDirect, ReponseQDJ, QUESTIONS_QDJ
 
 PIONNIER_ROOM = "b5zpbo3j"
@@ -529,8 +529,14 @@ def reglages(request):
         section = request.POST.get("section", "")
 
         if section == "nextcloud":
+            ancien_username = profile.nc_username
             profile.nc_username = request.POST.get("nc_username", "").strip()
             profile.nc_server = request.POST.get("nc_server", "atelier.neovillage.org").strip()
+            # Créer la voûte si l'username vient d'être défini ou changé
+            if profile.nc_username and (profile.nc_username != ancien_username or not profile.voute_initialisee):
+                ok = creer_voute_pioneer(profile.nc_username)
+                if ok:
+                    profile.voute_initialisee = True
             profile.save()
             messages.success(request, "Voûte Nextcloud enregistrée.")
             return redirect("/reglages/?section=nextcloud")

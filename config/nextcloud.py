@@ -7,7 +7,7 @@ Variables d'env requises dans /etc/almanak/almanak.env :
 """
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
 
@@ -57,6 +57,67 @@ def ecrire_dans_voute(nc_username: str, chemin_relatif: str, contenu: str) -> bo
         return True
     except Exception as exc:
         logger.warning("ecrire_dans_voute erreur : %s", exc)
+        return False
+
+
+def creer_voute_pioneer(nc_username: str) -> bool:
+    """
+    Crée la structure standard Almanak dans la voûte Nextcloud d'un pionnier.
+
+    Dossiers créés :
+      Almanak/
+        1-Inbox/
+        2-Projects/
+        3-Casquettes/
+        4-Resources/
+        5-Archives/
+    + Almanak/Bienvenue.md
+
+    Retourne True si réussi (ou déjà existant), False sinon.
+    """
+    if not configured():
+        return False
+    try:
+        import urllib.parse
+        base = f"{NC_URL}/remote.php/dav/files/{urllib.parse.quote(nc_username, safe='')}"
+
+        dossiers = [
+            "Almanak",
+            "Almanak/1-Inbox",
+            "Almanak/2-Projects",
+            "Almanak/3-Casquettes",
+            "Almanak/4-Resources",
+            "Almanak/5-Archives",
+        ]
+
+        for dossier in dossiers:
+            url = f"{base}/{urllib.parse.quote(dossier, safe='/')}"
+            resp = requests.request("MKCOL", url, auth=_AUTH, timeout=10)
+            # 201 = créé, 405 = existe déjà — les deux sont acceptables
+            if resp.status_code not in (201, 405):
+                logger.warning("creer_voute_pioneer MKCOL %s/%s → HTTP %s", nc_username, dossier, resp.status_code)
+
+        bienvenue = f"""---
+type: bienvenue
+created: {datetime.now(timezone.utc).strftime('%Y-%m-%d')}
+---
+
+# Bienvenue dans ta voûte, {nc_username} !
+
+Ta voûte Almanak est maintenant prête.
+
+- **1-Inbox/** — tes captures rapides, idées brutes, notes à trier
+- **2-Projects/** — tes projets actifs (un sous-dossier par projet)
+- **3-Casquettes/** — tes rôles récurrents (Artiste, Entrepreneur, Parent…)
+- **4-Resources/** — tes références externes, lectures, inspirations
+- **5-Archives/** — tes projets terminés ou en pause
+
+Une idée par note. Une note = un concept.
+"""
+        ecrire_dans_voute(nc_username, "Almanak/Bienvenue.md", bienvenue)
+        return True
+    except Exception as exc:
+        logger.warning("creer_voute_pioneer erreur : %s", exc)
         return False
 
 
