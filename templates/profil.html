@@ -262,13 +262,16 @@
 <div class="tb-grille">
 
   <!-- ── Question du jour ── -->
+  {% if 'qdj' not in widgets_caches %}
   <div class="tb-widget tb-widget--plein" id="widget-qdj">
     <h2>Question du jour</h2>
     <p class="qdj-texte" id="qdj-texte">Chargement…</p>
     <div id="qdj-corps"></div>
   </div>
+  {% endif %}
 
   <!-- ── Babillard ── -->
+  {% if 'babillard' not in widgets_caches %}
   <div class="tb-widget" id="widget-babillard">
     <h2>Babillard du groupe</h2>
     <div class="bab-posts" id="bab-posts"></div>
@@ -277,8 +280,10 @@
       <button class="bab-btn" id="bab-btn">Envoyer</button>
     </div>
   </div>
+  {% endif %}
 
   <!-- ── Sur la table (Nextcloud Deck) ── -->
+  {% if 'sur-la-table' not in widgets_caches %}
   <div class="tb-widget">
     <h2>Sur la table</h2>
     {% if sur_la_table is None %}
@@ -294,8 +299,10 @@
       <p class="nc-vide">Aucune carte sur la table pour l'instant.</p>
     {% endif %}
   </div>
+  {% endif %}
 
   <!-- ── Nouvelles du groupe (Nextcloud Talk) ── -->
+  {% if 'nouvelles' not in widgets_caches %}
   <div class="tb-widget">
     <h2>Nouvelles du groupe</h2>
     {% if nouvelles_groupe is None %}
@@ -311,8 +318,10 @@
       <p class="nc-vide">Aucun message récent.</p>
     {% endif %}
   </div>
+  {% endif %}
 
   <!-- ── Salon Talk ── -->
+  {% if 'salon-talk' not in widgets_caches %}
   <div class="tb-widget tb-widget--plein" id="widget-salon-talk">
     <h2>Salon Talk</h2>
     <div class="talk-cadre">
@@ -331,8 +340,10 @@
       </div>
     </div>
   </div>
+  {% endif %}
 
   <!-- ── Ma voûte ── -->
+  {% if 'voute' not in widgets_caches %}
   <div class="tb-widget {% if not profile.nc_username %}tb-widget--bientot{% endif %}">
     <h2>Ma voûte</h2>
     {% if profile.nc_username %}
@@ -353,8 +364,10 @@
       </p>
     {% endif %}
   </div>
+  {% endif %}
 
   <!-- ── Pionniers récents ── -->
+  {% if 'pionniers' not in widgets_caches %}
   <div class="tb-widget">
     <h2>Pionniers du réseau</h2>
     {% if pionniers_recents %}
@@ -381,12 +394,15 @@
     <a href="/pionniers/" class="voute-ouvrir">Page des pionniers →</a>
     {% endif %}
   </div>
+  {% endif %}
 
   <!-- ── Agenda du village ── -->
+  {% if 'agenda' not in widgets_caches %}
   <div class="tb-widget tb-widget--bientot">
     <h2>Agenda du village</h2>
     <p class="placeholder-bientot">Les prochains événements de Sainte-Émélie et alentours.</p>
   </div>
+  {% endif %}
 
 </div>
 

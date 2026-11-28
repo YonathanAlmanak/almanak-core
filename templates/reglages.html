@@ -94,6 +94,50 @@
   }
   .nc-status.liee { background: #e8f0e9; color: #2a4a30; border: 1px solid #b6d4ba; }
   .nc-status.non-liee { background: #f5ece0; color: #7a4a1a; border: 1px solid #e8c99a; }
+
+  /* ── Toggles de widgets ── */
+  .widgets-grille {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .7rem;
+  }
+  @media (max-width: 540px) { .widgets-grille { grid-template-columns: 1fr; } }
+
+  .widget-toggle {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    padding: .9rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    position: relative;
+    background: var(--bg);
+  }
+  .widget-toggle input[type="checkbox"] {
+    position: absolute;
+    top: .85rem;
+    right: .9rem;
+    width: 18px; height: 18px;
+    accent-color: var(--logo-or);
+    cursor: pointer;
+  }
+  .widget-toggle.active {
+    border-color: var(--logo-or);
+    background: var(--or-pale);
+  }
+  .widget-toggle-nom {
+    font-size: .88rem;
+    font-weight: 600;
+    color: var(--ink);
+    padding-right: 1.6rem;
+  }
+  .widget-toggle-desc {
+    font-size: .78rem;
+    color: var(--ink-soft);
+    line-height: 1.4;
+  }
 </style>
 {% endblock %}
 
@@ -105,7 +149,7 @@
   <!-- Navigation latérale -->
   <nav class="reglages-nav" aria-label="Sections des réglages">
     <a href="/reglages/?section=nextcloud" class="reglages-nav-item {% if section_active == 'nextcloud' %}active{% endif %}">Voûte Nextcloud</a>
-    <span class="reglages-nav-item" style="opacity:.5;cursor:default">Mes widgets</span>
+    <a href="/reglages/?section=widgets" class="reglages-nav-item {% if section_active == 'widgets' %}active{% endif %}">Mes widgets</a>
     <span class="reglages-nav-item" style="opacity:.5;cursor:default">Profil public</span>
     <a href="/reglages/?section=motdepasse" class="reglages-nav-item {% if section_active == 'motdepasse' %}active{% endif %}">Mot de passe</a>
   </nav>
@@ -141,6 +185,75 @@
       </div>
 
       <button type="submit" class="btn-primary">Enregistrer</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <!-- Panneau Widgets -->
+  {% if section_active == 'widgets' %}
+  <div class="reglages-panel">
+    <h2 class="panel-title">Mon tableau de bord</h2>
+    <p style="color:var(--ink-soft);font-size:.9rem;margin-bottom:1.6rem">Coche les widgets que tu veux voir sur ton tableau de bord. Décoche ceux que tu n'utilises pas pour garder un tableau épuré.</p>
+
+    <form method="post" action="/reglages/?section=widgets">
+      {% csrf_token %}
+      <input type="hidden" name="section" value="widgets">
+
+      {% with wc=widgets_caches %}
+      <div class="widgets-grille">
+
+        <label class="widget-toggle {% if 'qdj' not in wc %}active{% endif %}">
+          <input type="checkbox" name="widgets" value="qdj" {% if 'qdj' not in wc %}checked{% endif %}>
+          <span class="widget-toggle-nom">Question du jour</span>
+          <span class="widget-toggle-desc">Ta prochaine question et l'invitation à répondre.</span>
+        </label>
+
+        <label class="widget-toggle {% if 'babillard' not in wc %}active{% endif %}">
+          <input type="checkbox" name="widgets" value="babillard" {% if 'babillard' not in wc %}checked{% endif %}>
+          <span class="widget-toggle-nom">Babillard du groupe</span>
+          <span class="widget-toggle-desc">Messages partagés avec le réseau de confiance.</span>
+        </label>
+
+        <label class="widget-toggle {% if 'sur-la-table' not in wc %}active{% endif %}">
+          <input type="checkbox" name="widgets" value="sur-la-table" {% if 'sur-la-table' not in wc %}checked{% endif %}>
+          <span class="widget-toggle-nom">Sur la table</span>
+          <span class="widget-toggle-desc">Cartes du tableau Kanban Nextcloud.</span>
+        </label>
+
+        <label class="widget-toggle {% if 'nouvelles' not in wc %}active{% endif %}">
+          <input type="checkbox" name="widgets" value="nouvelles" {% if 'nouvelles' not in wc %}checked{% endif %}>
+          <span class="widget-toggle-nom">Nouvelles du groupe</span>
+          <span class="widget-toggle-desc">Derniers messages du salon Nextcloud Talk.</span>
+        </label>
+
+        <label class="widget-toggle {% if 'salon-talk' not in wc %}active{% endif %}">
+          <input type="checkbox" name="widgets" value="salon-talk" {% if 'salon-talk' not in wc %}checked{% endif %}>
+          <span class="widget-toggle-nom">Salon Talk</span>
+          <span class="widget-toggle-desc">Accès rapide au salon de discussion.</span>
+        </label>
+
+        <label class="widget-toggle {% if 'voute' not in wc %}active{% endif %}">
+          <input type="checkbox" name="widgets" value="voute" {% if 'voute' not in wc %}checked{% endif %}>
+          <span class="widget-toggle-nom">Ma voûte</span>
+          <span class="widget-toggle-desc">Accès à tes fichiers Nextcloud personnels.</span>
+        </label>
+
+        <label class="widget-toggle {% if 'pionniers' not in wc %}active{% endif %}">
+          <input type="checkbox" name="widgets" value="pionniers" {% if 'pionniers' not in wc %}checked{% endif %}>
+          <span class="widget-toggle-nom">Pionniers du réseau</span>
+          <span class="widget-toggle-desc">Membres récemment actifs dans le réseau.</span>
+        </label>
+
+        <label class="widget-toggle {% if 'agenda' not in wc %}active{% endif %}">
+          <input type="checkbox" name="widgets" value="agenda" {% if 'agenda' not in wc %}checked{% endif %}>
+          <span class="widget-toggle-nom">Agenda du village</span>
+          <span class="widget-toggle-desc">Événements à venir (bientôt disponible).</span>
+        </label>
+
+      </div>
+      {% endwith %}
+
+      <button type="submit" class="btn-primary" style="margin-top:1.6rem">Enregistrer</button>
     </form>
   </div>
   {% endif %}

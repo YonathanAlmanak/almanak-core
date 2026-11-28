@@ -32,6 +32,9 @@ class UserProfile(models.Model):
     # Suivi de l'onboarding : 0 = pas commencé, 1–8 = étape courante, 9 = terminé
     onboarding_etape = models.PositiveSmallIntegerField(default=0)
 
+    # Widgets masqués sur le tableau de bord (IDs séparés par des virgules)
+    widgets_caches = models.CharField(max_length=500, blank=True, default='')
+
     def pourcentage_profil(self):
         champs_texte = ['nom_artiste', 'village', 'bio_courte', 'passions',
                         'experience', 'relations_cherchees', 'offre_culturelle']

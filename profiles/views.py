@@ -121,6 +121,7 @@ def profil(request):
         .select_related("user")
         .order_by("-id")[:6]
     )
+    widgets_caches = [w.strip() for w in profile.widgets_caches.split(',') if w.strip()]
     return render(request, "profil.html", {
         "profile": profile,
         "voute_dossiers": VOUTE_STRUCTURE,
@@ -129,6 +130,7 @@ def profil(request):
         "nouvelles_groupe": nouvelles_groupe(PIONNIER_ROOM),
         "talk_url": f"{NC_BASE}/apps/spreed/#/call/{PIONNIER_ROOM}",
         "talk_room_lien": f"{NC_BASE}/call/{PIONNIER_ROOM}",
+        "widgets_caches": widgets_caches,
     })
 
 
@@ -552,9 +554,21 @@ def reglages(request):
 
             return redirect("/reglages/?section=motdepasse")
 
+        elif section == "widgets":
+            tous_widgets = ['qdj', 'babillard', 'sur-la-table', 'nouvelles', 'salon-talk', 'voute', 'pionniers', 'agenda']
+            visibles = request.POST.getlist('widgets')
+            caches = [w for w in tous_widgets if w not in visibles]
+            profile.widgets_caches = ','.join(caches)
+            profile.save()
+            messages.success(request, "Tableau de bord enregistré.")
+            return redirect("/reglages/?section=widgets")
+
+    widgets_caches_liste = [w.strip() for w in profile.widgets_caches.split(',') if w.strip()]
+
     return render(request, "reglages.html", {
         "profile": profile,
         "section_active": section_active,
+        "widgets_caches": widgets_caches_liste,
     })
 
 
