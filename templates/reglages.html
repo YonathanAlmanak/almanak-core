@@ -104,13 +104,14 @@
 
   <!-- Navigation latérale -->
   <nav class="reglages-nav" aria-label="Sections des réglages">
-    <a href="/reglages/" class="reglages-nav-item active">Voûte Nextcloud</a>
+    <a href="/reglages/?section=nextcloud" class="reglages-nav-item {% if section_active == 'nextcloud' %}active{% endif %}">Voûte Nextcloud</a>
     <span class="reglages-nav-item" style="opacity:.5;cursor:default">Mes widgets</span>
     <span class="reglages-nav-item" style="opacity:.5;cursor:default">Profil public</span>
-    <span class="reglages-nav-item" style="opacity:.5;cursor:default">Mot de passe</span>
+    <a href="/reglages/?section=motdepasse" class="reglages-nav-item {% if section_active == 'motdepasse' %}active{% endif %}">Mot de passe</a>
   </nav>
 
-  <!-- Panneau -->
+  <!-- Panneau Nextcloud -->
+  {% if section_active == 'nextcloud' %}
   <div class="reglages-panel">
     <h2 class="panel-title">Voûte Nextcloud personnelle</h2>
 
@@ -120,7 +121,7 @@
     <div class="nc-status non-liee">Non liée — remplis les champs ci-dessous pour connecter ta voûte.</div>
     {% endif %}
 
-    <form method="post" action="/reglages/">
+    <form method="post" action="/reglages/?section=nextcloud">
       {% csrf_token %}
       <input type="hidden" name="section" value="nextcloud">
 
@@ -142,6 +143,40 @@
       <button type="submit" class="btn-primary">Enregistrer</button>
     </form>
   </div>
+  {% endif %}
+
+  <!-- Panneau Mot de passe -->
+  {% if section_active == 'motdepasse' %}
+  <div class="reglages-panel">
+    <h2 class="panel-title">Changer mon mot de passe</h2>
+
+    <form method="post" action="/reglages/?section=motdepasse">
+      {% csrf_token %}
+      <input type="hidden" name="section" value="motdepasse">
+
+      <div class="form-row">
+        <label class="form-label" for="id_mdp_actuel">Mot de passe actuel</label>
+        <input class="form-input" type="password" name="mot_de_passe_actuel" id="id_mdp_actuel"
+               autocomplete="current-password" required>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label" for="id_nouveau_mdp">Nouveau mot de passe</label>
+        <input class="form-input" type="password" name="nouveau_mot_de_passe" id="id_nouveau_mdp"
+               autocomplete="new-password" required>
+        <span class="form-hint">8 caractères minimum.</span>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label" for="id_confirmer_mdp">Confirmer le nouveau mot de passe</label>
+        <input class="form-input" type="password" name="confirmation_mot_de_passe" id="id_confirmer_mdp"
+               autocomplete="new-password" required>
+      </div>
+
+      <button type="submit" class="btn-primary">Changer mon mot de passe</button>
+    </form>
+  </div>
+  {% endif %}
 
 </div>
 {% endblock %}

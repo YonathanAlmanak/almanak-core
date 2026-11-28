@@ -1,6 +1,7 @@
 import requests as _http
 
 from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -362,12 +363,38 @@ def voutes(request):
 @login_required
 def reglages(request):
     profile = _profil(request.user)
+    section_active = request.GET.get("section", "nextcloud")
+
     if request.method == "POST":
         section = request.POST.get("section", "")
+
         if section == "nextcloud":
             profile.nc_username = request.POST.get("nc_username", "").strip()
             profile.nc_server = request.POST.get("nc_server", "atelier.neovillage.org").strip()
             profile.save()
             messages.success(request, "Voûte Nextcloud enregistrée.")
-        return redirect("/reglages/")
-    return render(request, "reglages.html", {"profile": profile})
+            return redirect("/reglages/?section=nextcloud")
+
+        elif section == "motdepasse":
+            actuel = request.POST.get("mot_de_passe_actuel", "")
+            nouveau = request.POST.get("nouveau_mot_de_passe", "")
+            confirmation = request.POST.get("confirmation_mot_de_passe", "")
+
+            if not request.user.check_password(actuel):
+                messages.error(request, "Mot de passe actuel incorrect.")
+            elif len(nouveau) < 8:
+                messages.error(request, "Le nouveau mot de passe doit avoir au moins 8 caractères.")
+            elif nouveau != confirmation:
+                messages.error(request, "Le nouveau mot de passe et la confirmation ne correspondent pas.")
+            else:
+                request.user.set_password(nouveau)
+                request.user.save()
+                update_session_auth_hash(request, request.user)
+                messages.success(request, "Mot de passe changé avec succès.")
+
+            return redirect("/reglages/?section=motdepasse")
+
+    return render(request, "reglages.html", {
+        "profile": profile,
+        "section_active": section_active,
+    })
