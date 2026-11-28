@@ -164,6 +164,94 @@ Une idée par note. Une note = un concept.
         return False
 
 
+class VouteAdapter:
+    """
+    Route les appels WebDAV vers la voûte locale (atelier.neovillage.org via
+    compte de service) ou vers une instance Nextcloud externe du pionnier
+    (nc_externe_url + nc_externe_token).
+
+    Lot 1 — voûte locale  : nc_externe_url vide → compte de service NC_USER/NC_APP_PASSWORD
+    Lot 2 — voûte externe : nc_externe_url défini → token personnel du pionnier
+    """
+
+    def __init__(self, profile):
+        self.nc_username = profile.nc_username or profile.user.username
+        if profile.nc_externe_url and profile.nc_externe_token:
+            self.est_externe = True
+            self.base_url = profile.nc_externe_url.rstrip("/")
+            self._auth = (self.nc_username, profile.nc_externe_token)
+        else:
+            self.est_externe = False
+            self.base_url = NC_URL
+            self._auth = _AUTH
+
+    def _url(self, chemin_relatif):
+        import urllib.parse
+        return (
+            f"{self.base_url}/remote.php/dav/files/"
+            f"{urllib.parse.quote(self.nc_username, safe='')}/"
+            f"{urllib.parse.quote(chemin_relatif, safe='/')}"
+        )
+
+    def ecrire(self, chemin_relatif, contenu):
+        if not self.base_url:
+            return False
+        try:
+            resp = requests.put(
+                self._url(chemin_relatif),
+                data=contenu.encode("utf-8"),
+                auth=self._auth,
+                headers={"Content-Type": "text/markdown; charset=utf-8"},
+                timeout=10,
+            )
+            if resp.status_code not in (200, 201, 204):
+                logger.warning("VouteAdapter.ecrire %s/%s → HTTP %s",
+                               self.nc_username, chemin_relatif, resp.status_code)
+                return False
+            return True
+        except Exception as exc:
+            logger.warning("VouteAdapter.ecrire erreur : %s", exc)
+            return False
+
+    def creer_dossier(self, dossier):
+        if not self.base_url:
+            return False
+        try:
+            resp = requests.request("MKCOL", self._url(dossier), auth=self._auth, timeout=10)
+            return resp.status_code in (201, 405)
+        except Exception as exc:
+            logger.warning("VouteAdapter.creer_dossier %s/%s : %s", self.nc_username, dossier, exc)
+            return False
+
+    def creer_structure(self):
+        """Crée la structure standard Almanak/ dans la voûte du pionnier."""
+        from datetime import datetime, timezone as tz
+        for dossier in [
+            "Almanak", "Almanak/1-Inbox", "Almanak/2-Projects",
+            "Almanak/3-Casquettes", "Almanak/4-Resources", "Almanak/5-Archives",
+        ]:
+            self.creer_dossier(dossier)
+        bienvenue = f"""---
+type: bienvenue
+created: {datetime.now(tz.utc).strftime('%Y-%m-%d')}
+---
+
+# Bienvenue dans ta voûte, {self.nc_username} !
+
+Ta voûte Almanak est maintenant prête.
+
+- **1-Inbox/** — tes captures rapides, idées brutes, notes à trier
+- **2-Projects/** — tes projets actifs (un sous-dossier par projet)
+- **3-Casquettes/** — tes rôles récurrents (Artiste, Entrepreneur, Parent…)
+- **4-Resources/** — tes références externes, lectures, inspirations
+- **5-Archives/** — tes projets terminés ou en pause
+
+Une idée par note. Une note = un concept.
+"""
+        self.ecrire("Almanak/Bienvenue.md", bienvenue)
+        return True
+
+
 def sur_la_table(limit=8):
     """
     Cartes de la colonne « Sur la table » dans le Deck Nextcloud.

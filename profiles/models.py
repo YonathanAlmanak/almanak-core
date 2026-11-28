@@ -38,6 +38,13 @@ class UserProfile(models.Model):
     # Voûte Nextcloud — True si la structure Almanak/ a été créée
     voute_initialisee = models.BooleanField(default=False)
 
+    # Voûte fédérée (Lot 2) — Nextcloud externe du pionnier
+    nc_externe_url = models.CharField(max_length=255, blank=True)
+    nc_externe_token = models.CharField(max_length=500, blank=True)  # Application Password NC
+
+    # Profil "agence d'artistes" — champ privé (jamais affiché publiquement)
+    saboteur = models.TextField(blank=True)
+
     def pourcentage_profil(self):
         champs_texte = ['nom_artiste', 'village', 'bio_courte', 'passions',
                         'experience', 'relations_cherchees', 'offre_culturelle']

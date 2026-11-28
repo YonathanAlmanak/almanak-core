@@ -1,7 +1,7 @@
 import json
 import requests as _http
 
-from django.contrib import messages
+from django.contrib import messages as flash
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -212,7 +212,7 @@ def onboarding(request):
             if profile.nc_username:
                 contenu = _profil_vers_md(profile)
                 ecrire_dans_voute(profile.nc_username, "2-Projects/Mon profil Almanak.md", contenu)
-            messages.success(request, "Ton profil est maintenant configuré !")
+            flash.success(request, "Ton profil est maintenant configuré !")
             return redirect("/profil/")
         return redirect(f"/onboarding/?etape={prochaine}")
 
@@ -576,7 +576,7 @@ def voutes(request):
 @login_required
 def reglages(request):
     profile = _profil(request.user)
-    section_active = request.GET.get("section", "nextcloud")
+    section_active = request.GET.get("section", "ma_voute")
 
     if request.method == "POST":
         section = request.POST.get("section", "")
@@ -591,7 +591,7 @@ def reglages(request):
                 if ok:
                     profile.voute_initialisee = True
             profile.save()
-            messages.success(request, "Voûte Nextcloud enregistrée.")
+            flash.success(request, "Voûte Nextcloud enregistrée.")
             return redirect("/reglages/?section=nextcloud")
 
         elif section == "motdepasse":
@@ -600,18 +600,33 @@ def reglages(request):
             confirmation = request.POST.get("confirmation_mot_de_passe", "")
 
             if not request.user.check_password(actuel):
-                messages.error(request, "Mot de passe actuel incorrect.")
+                flash.error(request, "Mot de passe actuel incorrect.")
             elif len(nouveau) < 8:
-                messages.error(request, "Le nouveau mot de passe doit avoir au moins 8 caractères.")
+                flash.error(request, "Le nouveau mot de passe doit avoir au moins 8 caractères.")
             elif nouveau != confirmation:
-                messages.error(request, "Le nouveau mot de passe et la confirmation ne correspondent pas.")
+                flash.error(request, "Le nouveau mot de passe et la confirmation ne correspondent pas.")
             else:
                 request.user.set_password(nouveau)
                 request.user.save()
                 update_session_auth_hash(request, request.user)
-                messages.success(request, "Mot de passe changé avec succès.")
+                flash.success(request, "Mot de passe changé avec succès.")
 
             return redirect("/reglages/?section=motdepasse")
+
+        elif section == "ma_voute":
+            profile.nc_externe_url = request.POST.get("nc_externe_url", "").strip().rstrip("/")
+            token_entrant = request.POST.get("nc_externe_token", "").strip()
+            if token_entrant:
+                profile.nc_externe_token = token_entrant
+            profile.save()
+            if profile.nc_externe_url and profile.nc_externe_token and not profile.voute_initialisee:
+                from config.nextcloud import VouteAdapter
+                adapter = VouteAdapter(profile)
+                if adapter.creer_structure():
+                    profile.voute_initialisee = True
+                    profile.save()
+            flash.success(request, "Voûte externe enregistrée.")
+            return redirect("/reglages/?section=ma_voute")
 
         elif section == "widgets":
             tous_widgets = ['qdj', 'babillard', 'sur-la-table', 'nouvelles', 'salon-talk', 'voute', 'pionniers', 'agenda']
@@ -619,7 +634,7 @@ def reglages(request):
             caches = [w for w in tous_widgets if w not in visibles]
             profile.widgets_caches = ','.join(caches)
             profile.save()
-            messages.success(request, "Tableau de bord enregistré.")
+            flash.success(request, "Tableau de bord enregistré.")
             return redirect("/reglages/?section=widgets")
 
     widgets_caches_liste = [w.strip() for w in profile.widgets_caches.split(',') if w.strip()]
@@ -716,7 +731,7 @@ def repondre_qdj(request):
 
         _ecrire_qdj_dans_voute(request.user, rep)
 
-        messages.success(request, "Réponse publiée ✦")
+        flash.success(request, "Réponse publiée ✦")
         return redirect('/questions/')
 
     # GET — afficher le formulaire

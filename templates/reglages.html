@@ -148,45 +148,48 @@
 
   <!-- Navigation latérale -->
   <nav class="reglages-nav" aria-label="Sections des réglages">
-    <a href="/reglages/?section=nextcloud" class="reglages-nav-item {% if section_active == 'nextcloud' %}active{% endif %}">Voûte Nextcloud</a>
+    <a href="/reglages/?section=ma_voute" class="reglages-nav-item {% if section_active == 'ma_voute' %}active{% endif %}">Ma voûte</a>
     <a href="/reglages/?section=widgets" class="reglages-nav-item {% if section_active == 'widgets' %}active{% endif %}">Mes widgets</a>
     <span class="reglages-nav-item" style="opacity:.5;cursor:default">Profil public</span>
     <a href="/reglages/?section=motdepasse" class="reglages-nav-item {% if section_active == 'motdepasse' %}active{% endif %}">Mot de passe</a>
   </nav>
 
-  <!-- Panneau Nextcloud -->
-  {% if section_active == 'nextcloud' %}
+  <!-- Panneau Ma voûte -->
+  {% if section_active == 'ma_voute' %}
   <div class="reglages-panel">
-    <h2 class="panel-title">Voûte Nextcloud personnelle</h2>
+    <h2 class="panel-title">Ma voûte</h2>
 
-    {% if profile.nc_username %}
-    <div class="nc-status liee">✓ Liée à <strong>{{ profile.nc_username }}</strong> sur {{ profile.nc_server }}</div>
     {% if profile.voute_initialisee %}
-    <div class="nc-status liee" style="margin-top:.5rem">✦ Voûte Almanak/ initialisée</div>
+    <div class="nc-status liee">✦ Voûte Almanak initialisée</div>
     {% else %}
-    <div class="nc-status non-liee" style="margin-top:.5rem">Structure de voûte non encore créée — enregistre pour l'initialiser.</div>
-    {% endif %}
-    {% else %}
-    <div class="nc-status non-liee">Non liée — remplis les champs ci-dessous pour connecter ta voûte.</div>
+    <div class="nc-status non-liee">Voûte non encore initialisée.</div>
     {% endif %}
 
-    <form method="post" action="/reglages/?section=nextcloud">
+    <p style="color:var(--ink-soft);font-size:.88rem;margin:1rem 0 1.5rem">
+      Ta voûte est hébergée chez Néovillage par défaut. Si tu as déjà ton propre
+      serveur Nextcloud (comme Steve sur cloud.entretablees.ca), tu peux le connecter
+      ici en entrant son adresse et un jeton d'application. Ton Nextcloud reste le tien —
+      Almanak s'y branche avec ta permission.
+    </p>
+
+    <form method="post" action="/reglages/?section=ma_voute">
       {% csrf_token %}
-      <input type="hidden" name="section" value="nextcloud">
+      <input type="hidden" name="section" value="ma_voute">
 
       <div class="form-row">
-        <label class="form-label" for="id_nc_username">Nom d'utilisateur Nextcloud</label>
-        <input class="form-input" type="text" name="nc_username" id="id_nc_username"
-               value="{{ profile.nc_username }}" placeholder="ex : yonathan" autocomplete="username">
-        <span class="form-hint">Ton identifiant sur le serveur Nextcloud ci-dessous.</span>
+        <label class="form-label" for="id_nc_externe_url">Adresse de ton Nextcloud <span style="font-weight:400;opacity:.7">(optionnel)</span></label>
+        <input class="form-input" type="url" name="nc_externe_url" id="id_nc_externe_url"
+               value="{{ profile.nc_externe_url }}"
+               placeholder="https://cloud.entretablees.ca">
+        <span class="form-hint">Laisse vide si tu es hébergé chez Néovillage.</span>
       </div>
 
       <div class="form-row">
-        <label class="form-label" for="id_nc_server">Serveur Nextcloud</label>
-        <input class="form-input" type="text" name="nc_server" id="id_nc_server"
-               value="{{ profile.nc_server|default:'atelier.neovillage.org' }}"
-               placeholder="ex : atelier.neovillage.org">
-        <span class="form-hint">Laisse la valeur par défaut si tu es hébergé chez Néovillage.</span>
+        <label class="form-label" for="id_nc_externe_token">Jeton d'application <span style="font-weight:400;opacity:.7">(optionnel)</span></label>
+        <input class="form-input" type="password" name="nc_externe_token" id="id_nc_externe_token"
+               placeholder="{% if profile.nc_externe_token %}●●●●●●●● (défini — entre un nouveau pour changer){% else %}Génère-le dans Nextcloud : Paramètres → Sécurité → Mots de passe d'application{% endif %}"
+               autocomplete="off">
+        <span class="form-hint">Ce jeton permet à Almanak de lire et d'écrire dans ta voûte. Tu peux le révoquer à tout moment depuis ton Nextcloud.</span>
       </div>
 
       <button type="submit" class="btn-primary">Enregistrer</button>

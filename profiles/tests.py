@@ -151,3 +151,86 @@ class ProfilPublicTest(TestCase):
         self.client.logout()
         r = self.client.get('/p/yonathan/')
         self.assertNotContains(r, 'yonathan@secret.com')
+
+
+class VouteExterneTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user('steve', password='testpass123')
+        self.client.login(username='steve', password='testpass123')
+
+    def test_profil_a_champ_nc_externe_url(self):
+        from profiles.models import UserProfile
+        profile, _ = UserProfile.objects.get_or_create(user=self.user)
+        profile.nc_externe_url = 'https://cloud.entretablees.ca'
+        profile.save()
+        profile.refresh_from_db()
+        self.assertEqual(profile.nc_externe_url, 'https://cloud.entretablees.ca')
+
+    def test_profil_a_champ_nc_externe_token(self):
+        from profiles.models import UserProfile
+        profile, _ = UserProfile.objects.get_or_create(user=self.user)
+        profile.nc_externe_token = 'mon-token-secret'
+        profile.save()
+        profile.refresh_from_db()
+        self.assertEqual(profile.nc_externe_token, 'mon-token-secret')
+
+    def test_profil_a_champ_saboteur(self):
+        from profiles.models import UserProfile
+        profile, _ = UserProfile.objects.get_or_create(user=self.user)
+        profile.saboteur = 'Je procrastine quand...'
+        profile.save()
+        profile.refresh_from_db()
+        self.assertEqual(profile.saboteur, 'Je procrastine quand...')
+
+    def test_reglages_ma_voute_enregistre_token(self):
+        r = self.client.post('/reglages/?section=ma_voute', {
+            'section': 'ma_voute',
+            'nc_externe_url': 'https://cloud.entretablees.ca',
+            'nc_externe_token': 'mon-token-test',
+        })
+        self.assertRedirects(r, '/reglages/?section=ma_voute')
+        from profiles.models import UserProfile
+        profile = UserProfile.objects.get(user=self.user)
+        self.assertEqual(profile.nc_externe_url, 'https://cloud.entretablees.ca')
+        self.assertEqual(profile.nc_externe_token, 'mon-token-test')
+
+    def test_reglages_ma_voute_accessible(self):
+        r = self.client.get('/reglages/?section=ma_voute')
+        self.assertEqual(r.status_code, 200)
+
+    def test_saboteur_non_visible_sur_profil_public(self):
+        from profiles.models import UserProfile
+        profile, _ = UserProfile.objects.get_or_create(user=self.user)
+        profile.saboteur = 'Mon saboteur secret intime'
+        profile.save()
+        self.client.logout()
+        r = self.client.get('/p/steve/')
+        self.assertNotContains(r, 'Mon saboteur secret intime')
+
+
+class VouteAdapterTest(TestCase):
+    def test_adapter_local_pas_externe(self):
+        from config.nextcloud import VouteAdapter
+        user = User.objects.create_user('pionnier_local', password='test')
+        from profiles.models import UserProfile
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        profile.nc_username = 'pionnier_local'
+        profile.nc_externe_url = ''
+        profile.nc_externe_token = ''
+        profile.save()
+        adapter = VouteAdapter(profile)
+        self.assertFalse(adapter.est_externe)
+        self.assertEqual(adapter.nc_username, 'pionnier_local')
+
+    def test_adapter_externe_detecte_token(self):
+        from config.nextcloud import VouteAdapter
+        user = User.objects.create_user('steve_ext', password='test')
+        from profiles.models import UserProfile
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        profile.nc_username = 'steve'
+        profile.nc_externe_url = 'https://cloud.entretablees.ca'
+        profile.nc_externe_token = 'token-steve'
+        profile.save()
+        adapter = VouteAdapter(profile)
+        self.assertTrue(adapter.est_externe)
+        self.assertEqual(adapter.base_url, 'https://cloud.entretablees.ca')
