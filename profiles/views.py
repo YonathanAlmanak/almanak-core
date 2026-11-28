@@ -11,7 +11,8 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.http import require_http_methods
 
-from config.nextcloud import nouvelles_groupe, sur_la_table, ecrire_dans_voute, creer_voute_pioneer
+from config.nextcloud import (nouvelles_groupe, sur_la_table, ecrire_dans_voute,
+                              creer_voute_pioneer, creer_dossier_dans_voute, deposer_dans_voute)
 from .models import UserProfile, Notification, Vouch, Conversation, MessageDirect, ReponseQDJ, QUESTIONS_QDJ
 
 PIONNIER_ROOM = "b5zpbo3j"
@@ -57,6 +58,58 @@ def _talk_iframe_ok(nc_server: str) -> bool:
 
 
 VOUTE_STRUCTURE = ["1-Inbox", "2-Projects", "3-Casquettes", "4-Resources", "5-Archives"]
+
+
+def _ecrire_qdj_dans_voute(user, rep):
+    """Écrit/met à jour une réponse QDJ dans la voûte Nextcloud du pionnier."""
+    try:
+        profile = user.profile
+    except Exception:
+        return
+    if not profile.nc_username or not profile.voute_initialisee:
+        return
+
+    nc = profile.nc_username
+    date_str = rep.created.strftime('%Y-%m-%d')
+
+    # Dossiers
+    creer_dossier_dans_voute(nc, "Almanak/Questions du jour")
+    if rep.video:
+        creer_dossier_dans_voute(nc, "Almanak/Questions du jour/videos")
+
+    # Vidéo — upload binaire
+    video_ref = ""
+    if rep.video:
+        try:
+            video_nom = f"{date_str}-{rep.question_id}.mp4"
+            video_chemin = f"Almanak/Questions du jour/videos/{video_nom}"
+            rep.video.open('rb')
+            octets = rep.video.read()
+            rep.video.close()
+            if deposer_dans_voute(nc, video_chemin, octets, "video/mp4"):
+                video_ref = f"\n[▶ Vidéo](videos/{video_nom})\n"
+        except Exception:
+            pass
+
+    # Fichier Markdown
+    md = f"""---
+type: question-du-jour
+question_id: {rep.question_id}
+created: {date_str}
+publie: {"true" if rep.publie else "false"}
+---
+
+# {rep.question_texte}
+
+"""
+    if rep.citation:
+        md += f"> « {rep.citation} »\n\n"
+    if rep.corps:
+        md += rep.corps.strip() + "\n"
+    md += video_ref
+
+    chemin = f"Almanak/Questions du jour/{date_str} — {rep.question_id}.md"
+    ecrire_dans_voute(nc, chemin, md)
 
 
 def _profil_vers_md(profile) -> str:
@@ -660,6 +713,8 @@ def repondre_qdj(request):
             if video:
                 rep.video = video
             rep.save()
+
+        _ecrire_qdj_dans_voute(request.user, rep)
 
         messages.success(request, "Réponse publiée ✦")
         return redirect('/questions/')

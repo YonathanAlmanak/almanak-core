@@ -60,6 +60,49 @@ def ecrire_dans_voute(nc_username: str, chemin_relatif: str, contenu: str) -> bo
         return False
 
 
+def creer_dossier_dans_voute(nc_username: str, dossier: str) -> bool:
+    """Crée un dossier dans la voûte d'un pionnier (MKCOL). 405 = existe déjà, OK."""
+    if not configured():
+        return False
+    try:
+        import urllib.parse
+        url = (
+            f"{NC_URL}/remote.php/dav/files/"
+            f"{urllib.parse.quote(nc_username, safe='')}/"
+            f"{urllib.parse.quote(dossier, safe='/')}"
+        )
+        resp = requests.request("MKCOL", url, auth=_AUTH, timeout=10)
+        return resp.status_code in (201, 405)
+    except Exception as exc:
+        logger.warning("creer_dossier_dans_voute %s/%s : %s", nc_username, dossier, exc)
+        return False
+
+
+def deposer_dans_voute(nc_username: str, chemin_relatif: str, contenu: bytes, content_type: str = "application/octet-stream") -> bool:
+    """Dépose un fichier binaire dans la voûte d'un pionnier."""
+    if not configured():
+        return False
+    try:
+        import urllib.parse
+        url = (
+            f"{NC_URL}/remote.php/dav/files/"
+            f"{urllib.parse.quote(nc_username, safe='')}/"
+            f"{urllib.parse.quote(chemin_relatif, safe='/')}"
+        )
+        resp = requests.put(
+            url, data=contenu, auth=_AUTH,
+            headers={"Content-Type": content_type},
+            timeout=60,
+        )
+        if resp.status_code not in (200, 201, 204):
+            logger.warning("deposer_dans_voute %s/%s → HTTP %s", nc_username, chemin_relatif, resp.status_code)
+            return False
+        return True
+    except Exception as exc:
+        logger.warning("deposer_dans_voute erreur : %s", exc)
+        return False
+
+
 def creer_voute_pioneer(nc_username: str) -> bool:
     """
     Crée la structure standard Almanak dans la voûte Nextcloud d'un pionnier.
