@@ -1,3 +1,4 @@
+import json
 import requests as _http
 
 from django.contrib import messages
@@ -5,12 +6,13 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.cache import cache
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.http import require_http_methods
 
 from config.nextcloud import nouvelles_groupe, sur_la_table, ecrire_dans_voute
-from .models import UserProfile, Notification, Vouch
+from .models import UserProfile, Notification, Vouch, Conversation, MessageDirect
 
 PIONNIER_ROOM = "b5zpbo3j"
 
@@ -327,17 +329,166 @@ def api_unvouch(request, username):
     return JsonResponse({"ok": True, "nb_vouches": nb})
 
 
+def _carte_intro(profil_a, profil_b):
+    """Génère une phrase d'accroche entre deux pionniers (v0.1 — règles de profil)."""
+    nom_a = profil_a.nom_artiste or profil_a.user.username
+    nom_b = profil_b.nom_artiste or profil_b.user.username
+
+    if profil_a.village and profil_b.village:
+        if profil_a.village.strip().lower() == profil_b.village.strip().lower():
+            return f"{nom_a} et {nom_b} sont tous les deux enracinés à {profil_a.village}."
+
+    if profil_a.passions and profil_b.passions:
+        mots_a = set(w.lower().strip(".,;:!?") for w in profil_a.passions.split() if len(w) > 4)
+        mots_b = set(w.lower().strip(".,;:!?") for w in profil_b.passions.split() if len(w) > 4)
+        communs = mots_a & mots_b
+        if communs:
+            mot = sorted(communs, key=len, reverse=True)[0]
+            return f"{nom_a} et {nom_b} ont tous les deux mentionné « {mot} » dans leur profil."
+
+    if profil_b.village:
+        return (f"{nom_a} ({profil_a.village or '?'}) et {nom_b} ({profil_b.village}) "
+                f"— deux pionniers du réseau de confiance Almanak.")
+    return f"{nom_a} et {nom_b} — deux pionniers du réseau de confiance Almanak."
+
+
+def _conv_liste(user):
+    """Retourne la liste des conversations d'un utilisateur, triée par dernier message."""
+    convs = (
+        Conversation.objects
+        .filter(Q(user1=user) | Q(user2=user))
+        .select_related('user1__profile', 'user2__profile')
+    )
+    items = []
+    for c in convs:
+        autre = c.autre(user)
+        dernier = c.dernier_message()
+        try:
+            ap = autre.profile
+        except UserProfile.DoesNotExist:
+            ap = None
+        items.append({
+            'conv': c,
+            'autre': autre,
+            'autre_profile': ap,
+            'dernier': dernier,
+            'nb_non_lus': c.nb_non_lus(user),
+        })
+    items.sort(
+        key=lambda x: x['dernier'].created if x['dernier'] else x['conv'].created,
+        reverse=True,
+    )
+    return items
+
+
 @login_required
 def messages(request):
-    profile = _profil(request.user)
-    nc_server = profile.nc_server or "atelier.neovillage.org"
-    talk_messages_url = f"https://{nc_server}/apps/spreed/#/direct"
-    talk_messages_lien = f"https://{nc_server}/apps/spreed/"
+    conv_list = _conv_liste(request.user)
     return render(request, "messages.html", {
-        "profile": profile,
-        "talk_messages_url": talk_messages_url,
-        "talk_messages_lien": talk_messages_lien,
-        "iframe_ok": _talk_iframe_ok(nc_server),
+        "conv_list": conv_list,
+        "conversation_active": None,
+    })
+
+
+@login_required
+def conversation(request, username):
+    autre_user = get_object_or_404(User, username=username)
+    if autre_user == request.user:
+        return redirect('/messages/')
+
+    conv = Conversation.entre(request.user, autre_user)
+
+    if request.method == 'POST':
+        corps = request.POST.get('corps', '').strip()
+        if corps and len(corps) <= 2000:
+            MessageDirect.objects.create(conversation=conv, auteur=request.user, corps=corps)
+            try:
+                nom_moi = request.user.profile.nom_artiste or request.user.username
+            except UserProfile.DoesNotExist:
+                nom_moi = request.user.username
+            Notification.objects.create(
+                user=autre_user,
+                type=Notification.MESSAGE,
+                texte=f"Nouveau message de {nom_moi}",
+                lien=f"/messages/{request.user.username}/",
+            )
+        return redirect(f'/messages/{username}/')
+
+    conv.messages_conv.filter(lu=False).exclude(auteur=request.user).update(lu=True)
+
+    messages_fil = list(conv.messages_conv.select_related('auteur__profile').all())
+
+    nb_mes_messages = sum(1 for m in messages_fil if m.auteur == request.user)
+    carte_intro = None
+    if nb_mes_messages == 0:
+        try:
+            carte_intro = _carte_intro(request.user.profile, autre_user.profile)
+        except UserProfile.DoesNotExist:
+            pass
+
+    conv_list = _conv_liste(request.user)
+    for item in conv_list:
+        item['active'] = item['conv'].id == conv.id
+
+    try:
+        autre_profile = autre_user.profile
+    except UserProfile.DoesNotExist:
+        autre_profile = None
+
+    try:
+        vouch_donne = Vouch.objects.filter(source=request.user, cible=autre_user).exists()
+    except Exception:
+        vouch_donne = False
+
+    return render(request, "messages.html", {
+        "conv_list": conv_list,
+        "conversation_active": conv,
+        "autre_user": autre_user,
+        "autre_profile": autre_profile,
+        "messages_fil": messages_fil,
+        "carte_intro": carte_intro,
+        "vouch_donne": vouch_donne,
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_envoyer_message(request, username):
+    autre_user = get_object_or_404(User, username=username)
+    if autre_user == request.user:
+        return JsonResponse({"erreur": "Impossible de s'écrire à soi-même."}, status=400)
+
+    try:
+        data = json.loads(request.body)
+        corps = data.get('corps', '').strip()
+    except (json.JSONDecodeError, ValueError):
+        corps = request.POST.get('corps', '').strip()
+
+    if not corps:
+        return JsonResponse({'erreur': 'Message vide.'}, status=400)
+    if len(corps) > 2000:
+        return JsonResponse({'erreur': 'Message trop long (max 2000 caractères).'}, status=400)
+
+    conv = Conversation.entre(request.user, autre_user)
+    msg = MessageDirect.objects.create(conversation=conv, auteur=request.user, corps=corps)
+
+    try:
+        nom_moi = request.user.profile.nom_artiste or request.user.username
+    except UserProfile.DoesNotExist:
+        nom_moi = request.user.username
+    Notification.objects.create(
+        user=autre_user,
+        type=Notification.MESSAGE,
+        texte=f"Nouveau message de {nom_moi}",
+        lien=f"/messages/{request.user.username}/",
+    )
+
+    return JsonResponse({
+        'ok': True,
+        'id': msg.id,
+        'corps': msg.corps,
+        'created': msg.created.isoformat(),
+        'auteur': request.user.username,
     })
 
 

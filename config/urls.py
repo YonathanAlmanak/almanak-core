@@ -20,7 +20,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from profiles.views import (
     profil, voutes, reglages, onboarding, profil_public,
-    pionniers, messages, notifications, api_notifs_lues,
+    pionniers, messages, conversation, api_envoyer_message,
+    notifications, api_notifs_lues,
     api_vouch, api_unvouch,
     api_photo_upload, api_banniere_upload,
 )
@@ -526,6 +527,8 @@ urlpatterns = [
     path("onboarding/", onboarding, name="onboarding"),
     path("pionniers/", pionniers, name="pionniers"),
     path("messages/", messages, name="messages"),
+    path("messages/<str:username>/", conversation, name="conversation"),
+    path("api/messages/<str:username>/envoyer/", api_envoyer_message),
     path("notifications/", notifications, name="notifications"),
     path("api/notifications/lues/", api_notifs_lues),
     path("api/vouch/<str:username>/", api_vouch, name="api_vouch"),

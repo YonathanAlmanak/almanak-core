@@ -58,12 +58,58 @@ class UserProfile(models.Model):
         return f"Profil de {self.user.username} ({self.role})"
 
 
+class Conversation(models.Model):
+    """Échange direct 1:1 entre deux pionniers."""
+    user1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='conversations_initiees')
+    user2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='conversations_recues')
+    created = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ('user1', 'user2')
+        ordering = ['-created']
+
+    @classmethod
+    def entre(cls, user_a, user_b):
+        u1, u2 = sorted([user_a, user_b], key=lambda u: u.id)
+        conv, _ = cls.objects.get_or_create(user1=u1, user2=u2)
+        return conv
+
+    def autre(self, user):
+        return self.user2 if self.user1 == user else self.user1
+
+    def dernier_message(self):
+        return self.messages_conv.order_by('-created').first()
+
+    def nb_non_lus(self, user):
+        return self.messages_conv.filter(lu=False).exclude(auteur=user).count()
+
+    def __str__(self):
+        return f"{self.user1.username} ↔ {self.user2.username}"
+
+
+class MessageDirect(models.Model):
+    """Message dans une conversation 1:1."""
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages_conv')
+    auteur = models.ForeignKey(User, on_delete=models.CASCADE, related_name='messages_envoyes')
+    corps = models.TextField()
+    lu = models.BooleanField(default=False)
+    created = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['created']
+
+    def __str__(self):
+        return f"[{self.auteur.username}] {self.corps[:60]}"
+
+
 class Notification(models.Model):
     NOUVEAU_PIONNIER = 'nouveau_pionnier'
     BABILLARD = 'babillard'
+    MESSAGE = 'message'
     TYPE_CHOICES = [
         (NOUVEAU_PIONNIER, 'Nouveau pionnier'),
         (BABILLARD, 'Babillard'),
+        (MESSAGE, 'Message direct'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')

@@ -3,114 +3,569 @@
 
 {% block extra_head %}
 <style>
-  .messages-entete {
-    padding: 1.8rem 0 1.4rem;
-    border-bottom: 1px solid var(--line);
-    margin-bottom: 1.6rem;
+  /* Pleine largeur pour la messagerie */
+  .site-content { max-width: 1100px; padding-top: 0; padding-bottom: 0; }
+
+  /* ── Disposition trois panneaux ── */
+  .msg-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr 230px;
+    height: calc(100vh - 56px);
+    overflow: hidden;
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+  }
+
+  /* ── Panneau gauche : liste ── */
+  .msg-liste {
     display: flex;
-    align-items: baseline;
+    flex-direction: column;
+    border-right: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .msg-liste-entete {
+    padding: 1rem 1rem .7rem;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
     justify-content: space-between;
     gap: .5rem;
-    flex-wrap: wrap;
+    flex-shrink: 0;
   }
-  .messages-titre {
+  .msg-liste-titre {
     font-family: "Fraunces", Georgia, serif;
-    font-size: 1.7rem;
     font-weight: 600;
+    font-size: 1.05rem;
     margin: 0;
   }
-  .messages-sous-titre {
-    font-size: .82rem;
-    color: var(--ink-soft);
-    margin: 0;
-  }
+  .msg-scroll { overflow-y: auto; flex: 1; }
 
-  .talk-cadre-messages {
+  .conv-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .75rem 1rem;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none;
+    color: var(--ink);
+    transition: background .12s;
     position: relative;
-    width: 100%;
-    height: calc(100vh - 240px);
-    min-height: 480px;
-    border-radius: 12px;
-    overflow: hidden;
-    background: var(--surface);
+  }
+  .conv-item:hover { background: var(--accent-soft); }
+  .conv-item.active { background: var(--accent-soft); border-left: 3px solid var(--accent); padding-left: calc(1rem - 3px); }
+
+  .conv-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--line);
+  }
+  .conv-avatar-initiale {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--accent-soft);
     border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: .9rem; color: var(--accent);
+    flex-shrink: 0;
+  }
+  .conv-info { flex: 1; min-width: 0; }
+  .conv-nom {
+    font-weight: 600; font-size: .88rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .conv-preview {
+    font-size: .78rem; color: var(--ink-soft);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .conv-badge {
+    background: var(--accent); color: #fff;
+    border-radius: 999px; font-size: .65rem; font-weight: 700;
+    min-width: 18px; height: 18px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px; flex-shrink: 0;
   }
 
-  .talk-iframe-messages {
-    width: 100%;
-    height: 100%;
-    border: none;
-    display: block;
+  .msg-liste-vide {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: .88rem;
+    line-height: 1.6;
   }
+  .msg-liste-vide a { color: var(--accent); }
 
-  .talk-fallback-messages {
-    display: none;
+  /* ── Panneau central : fil ── */
+  .msg-fil {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .msg-fil-entete {
+    padding: .8rem 1.2rem;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    flex-shrink: 0;
+  }
+  .msg-fil-titre {
+    font-weight: 600;
+    font-size: .95rem;
+    margin: 0;
+    flex: 1;
+  }
+  .msg-fil-village { font-size: .78rem; color: var(--ink-soft); }
+
+  .msg-fil-vide {
+    flex: 1;
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1.2rem;
-    height: 100%;
+    gap: 1rem;
+    color: var(--ink-soft);
     text-align: center;
     padding: 2rem;
   }
-  .talk-fallback-messages p {
-    font-size: .95rem;
-    color: var(--ink-soft);
-    max-width: 400px;
-    margin: 0;
-    line-height: 1.6;
+  .msg-fil-vide p { margin: 0; font-size: .9rem; max-width: 300px; line-height: 1.6; }
+  .msg-fil-vide a { color: var(--accent); }
+
+  .msg-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
   }
-  .btn-ouvrir-talk {
-    display: inline-block;
-    padding: .6rem 1.4rem;
+
+  /* Carte intro Alma */
+  .msg-carte-intro {
+    background: var(--or-pale);
+    border: 1px solid #e8d5a3;
+    border-radius: 10px;
+    padding: .75rem 1rem;
+    font-size: .82rem;
+    color: #7a5c1e;
+    margin-bottom: .4rem;
+    display: flex;
+    gap: .6rem;
+    align-items: flex-start;
+  }
+  .msg-carte-intro-icone { font-size: 1rem; flex-shrink: 0; }
+  .msg-carte-intro-texte { flex: 1; line-height: 1.5; }
+  .msg-carte-intro-label { font-weight: 600; font-size: .72rem; letter-spacing: .03em; display: block; margin-bottom: .2rem; }
+
+  /* Bulles de messages */
+  .msg-bulle-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: .5rem;
+  }
+  .msg-bulle-wrap.moi { justify-content: flex-end; }
+  .msg-bulle-wrap.eux { justify-content: flex-start; }
+
+  .msg-bulle {
+    max-width: 70%;
+    padding: .6rem .9rem;
+    border-radius: 16px;
+    font-size: .9rem;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+  .msg-bulle.moi {
     background: var(--accent);
     color: #fff;
-    border-radius: 8px;
-    font-size: .9rem;
-    font-weight: 600;
-    text-decoration: none;
+    border-bottom-right-radius: 4px;
   }
-  .btn-ouvrir-talk:hover { background: #2f4c35; }
-
-  .messages-hint {
-    font-size: .78rem;
+  .msg-bulle.eux {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-bottom-left-radius: 4px;
+  }
+  .msg-heure {
+    font-size: .68rem;
     color: var(--ink-soft);
-    margin-top: .9rem;
+    white-space: nowrap;
+    margin-bottom: .15rem;
+  }
+  .msg-bulle-wrap.moi .msg-heure { text-align: right; }
+
+  /* Zone de saisie */
+  .msg-saisie {
+    border-top: 1px solid var(--line);
+    padding: .8rem 1rem;
+    display: flex;
+    gap: .6rem;
+    align-items: flex-end;
+    flex-shrink: 0;
+    background: var(--surface);
+  }
+  .msg-textarea {
+    flex: 1;
+    resize: none;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: .5rem .9rem;
+    font-family: inherit;
+    font-size: .9rem;
+    line-height: 1.4;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 36px;
+    max-height: 120px;
+    overflow-y: auto;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .msg-textarea:focus { border-color: var(--accent); }
+  .msg-btn-envoyer {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background .15s;
+  }
+  .msg-btn-envoyer:hover { background: #2f4c35; }
+  .msg-btn-envoyer svg { width: 16px; height: 16px; fill: #fff; }
+
+  /* ── Panneau droit : RDV + profil ── */
+  .msg-rdv {
+    border-left: 1px solid var(--line);
+    overflow-y: auto;
+    padding: 1.2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .msg-rdv-vide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--ink-soft);
+    text-align: center;
+    font-size: .85rem;
+    padding: 1rem;
+    gap: .5rem;
+  }
+
+  .rdv-avatar {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto .5rem;
+    background: var(--line);
+  }
+  .rdv-avatar-initiale {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 1.2rem; color: var(--accent);
+    margin: 0 auto .5rem;
+  }
+  .rdv-nom {
+    font-weight: 600;
+    font-size: .95rem;
     text-align: center;
   }
-  .messages-hint a { color: var(--accent); }
+  .rdv-village {
+    font-size: .78rem;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-bottom: .5rem;
+  }
+  .rdv-score {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    font-size: .78rem;
+    color: var(--ink-soft);
+    padding: .4rem .8rem;
+    background: var(--or-pale);
+    border: 1px solid #e8d5a3;
+    border-radius: 8px;
+    color: #7a5c1e;
+  }
+  .rdv-score-num { font-weight: 700; font-size: .9rem; }
+
+  .rdv-section-titre {
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: .5rem 0 .3rem;
+  }
+
+  .btn-rdv {
+    display: block;
+    width: 100%;
+    padding: .55rem .8rem;
+    border-radius: 8px;
+    font-size: .82rem;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    transition: background .12s;
+  }
+  .btn-rdv-profil {
+    background: var(--accent-soft);
+    color: var(--accent);
+    margin-bottom: .4rem;
+  }
+  .btn-rdv-profil:hover { background: #d2e4d6; }
+  .btn-rdv-vouch {
+    background: var(--or-pale);
+    color: #7a5c1e;
+    border: 1px solid #e8d5a3;
+    margin-bottom: .4rem;
+  }
+  .btn-rdv-vouch:hover { background: #f7edc8; }
+  .btn-rdv-cal {
+    background: var(--surface);
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+  }
+  .btn-rdv-cal:hover { background: var(--bg); }
+
+  /* ── Responsive ── */
+  @media (max-width: 860px) {
+    .msg-layout { grid-template-columns: 1fr; }
+    .msg-rdv { display: none; }
+    .msg-liste { display: {% if conversation_active %}none{% else %}flex{% endif %}; }
+    .msg-fil { display: {% if conversation_active %}flex{% else %}none{% endif %}; }
+  }
+  @media (max-width: 600px) {
+    .msg-bulle { max-width: 85%; }
+  }
 </style>
 {% endblock %}
 
-{% block content %}
-
-<div class="messages-entete">
-  <h1 class="messages-titre">Messages</h1>
-  <p class="messages-sous-titre">Conversations Talk · <a href="{{ talk_messages_lien }}" target="_blank" rel="noopener" style="color:var(--accent)">Ouvrir dans Nextcloud →</a></p>
-</div>
-
-<div class="talk-cadre-messages">
-{% if iframe_ok %}
-  <iframe
-    id="talk-messages-iframe"
-    class="talk-iframe-messages"
-    src="{{ talk_messages_url }}"
-    allow="camera; microphone; display-capture; autoplay; fullscreen"
-    allowfullscreen
-    title="Messagerie Talk"
-  ></iframe>
-{% else %}
-  <div class="talk-fallback-messages" style="display:flex">
-    <p>Ouvre la messagerie dans Nextcloud Talk pour accéder à tes conversations directes.</p>
-    <a href="{{ talk_messages_lien }}" target="_blank" rel="noopener" class="btn-ouvrir-talk">
-      Ouvrir dans Nextcloud →
-    </a>
-  </div>
+{% block nav_tabs %}
+{% if user.is_authenticated %}
+<nav class="nav-tabs" aria-label="Navigation principale">
+  <a href="/profil/"    class="nav-tab {% if request.resolver_match.url_name == 'profil'    %}active{% endif %}">Mon Almanak</a>
+  <a href="/pionniers/" class="nav-tab {% if request.resolver_match.url_name == 'pionniers' %}active{% endif %}">Pionniers</a>
+  <a href="/messages/"  class="nav-tab active">Messages</a>
+  <a href="/voutes/"    class="nav-tab {% if request.resolver_match.url_name == 'voutes'    %}active{% endif %}">Voûtes</a>
+  <a href="/reglages/"  class="nav-tab {% if request.resolver_match.url_name == 'reglages'  %}active{% endif %}">Réglages</a>
+</nav>
 {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="msg-layout">
+
+  {# ── Panneau gauche : liste ── #}
+  <aside class="msg-liste">
+    <div class="msg-liste-entete">
+      <h1 class="msg-liste-titre">Messages</h1>
+      <a href="/pionniers/" title="Nouvelle conversation" style="color:var(--accent);font-size:1.3rem;text-decoration:none;line-height:1" aria-label="Nouvelle conversation">＋</a>
+    </div>
+    <div class="msg-scroll">
+    {% if conv_list %}
+      {% for item in conv_list %}
+        {% with autre=item.autre ap=item.autre_profile dernier=item.dernier nl=item.nb_non_lus %}
+        <a href="/messages/{{ autre.username }}/"
+           class="conv-item{% if item.active %} active{% endif %}">
+          {% if ap and ap.photo %}
+            <img src="{{ ap.photo.url }}" alt="{{ ap.nom_artiste|default:autre.username }}" class="conv-avatar">
+          {% else %}
+            <div class="conv-avatar-initiale">{{ ap.nom_artiste|default:autre.username|slice:":1"|upper }}</div>
+          {% endif %}
+          <div class="conv-info">
+            <div class="conv-nom">{{ ap.nom_artiste|default:autre.username }}</div>
+            <div class="conv-preview">
+              {% if dernier %}{{ dernier.corps|truncatechars:38 }}{% else %}Nouvelle conversation{% endif %}
+            </div>
+          </div>
+          {% if nl > 0 %}<span class="conv-badge">{{ nl }}</span>{% endif %}
+        </a>
+        {% endwith %}
+      {% endfor %}
+    {% else %}
+      <div class="msg-liste-vide">
+        <p>Aucune conversation pour l'instant.<br>
+        <a href="/pionniers/">Visite les pionniers</a> pour démarrer un échange.</p>
+      </div>
+    {% endif %}
+    </div>
+  </aside>
+
+  {# ── Panneau central : fil ── #}
+  <section class="msg-fil">
+  {% if conversation_active %}
+
+    <div class="msg-fil-entete">
+      {% if autre_profile and autre_profile.photo %}
+        <img src="{{ autre_profile.photo.url }}" alt="" class="conv-avatar" style="width:34px;height:34px">
+      {% else %}
+        <div class="conv-avatar-initiale" style="width:34px;height:34px;font-size:.8rem">
+          {{ autre_profile.nom_artiste|default:autre_user.username|slice:":1"|upper }}
+        </div>
+      {% endif %}
+      <div>
+        <p class="msg-fil-titre">{{ autre_profile.nom_artiste|default:autre_user.username }}</p>
+        {% if autre_profile and autre_profile.village %}
+        <span class="msg-fil-village">{{ autre_profile.village }}</span>
+        {% endif %}
+      </div>
+      <a href="/p/{{ autre_user.username }}/" style="margin-left:auto;font-size:.78rem;color:var(--accent);text-decoration:none">Profil →</a>
+    </div>
+
+    <div class="msg-messages" id="msg-messages">
+      {% if carte_intro %}
+      <div class="msg-carte-intro">
+        <span class="msg-carte-intro-icone">✦</span>
+        <div class="msg-carte-intro-texte">
+          <span class="msg-carte-intro-label">Alma · Introduction</span>
+          {{ carte_intro }}
+        </div>
+      </div>
+      {% endif %}
+
+      {% for msg in messages_fil %}
+      {% if msg.auteur == request.user %}
+      <div class="msg-bulle-wrap moi">
+        <div>
+          <div class="msg-heure">{{ msg.created|date:"G\hi" }}</div>
+          <div class="msg-bulle moi">{{ msg.corps|linebreaksbr }}</div>
+        </div>
+      </div>
+      {% else %}
+      <div class="msg-bulle-wrap eux">
+        <div>
+          <div class="msg-heure">{{ msg.created|date:"G\hi" }}</div>
+          <div class="msg-bulle eux">{{ msg.corps|linebreaksbr }}</div>
+        </div>
+      </div>
+      {% endif %}
+      {% endfor %}
+
+      {% if not messages_fil and not carte_intro %}
+      <div style="text-align:center;color:var(--ink-soft);font-size:.85rem;margin:auto">
+        Envoie le premier message ✦
+      </div>
+      {% endif %}
+    </div>
+
+    <form class="msg-saisie" method="post" action="/messages/{{ autre_user.username }}/" id="msg-form">
+      {% csrf_token %}
+      <textarea
+        name="corps"
+        class="msg-textarea"
+        rows="1"
+        placeholder="Écris un message…"
+        maxlength="2000"
+        id="msg-input"
+        autofocus
+      ></textarea>
+      <button type="submit" class="msg-btn-envoyer" title="Envoyer" aria-label="Envoyer">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+        </svg>
+      </button>
+    </form>
+
+  {% else %}
+    <div class="msg-fil-vide">
+      <span style="font-size:2rem">✉</span>
+      <p>Sélectionne une conversation à gauche, ou <a href="/pionniers/">visite un profil pionnier</a> pour démarrer un échange.</p>
+    </div>
+  {% endif %}
+  </section>
+
+  {# ── Panneau droit : RDV ── #}
+  <aside class="msg-rdv">
+  {% if conversation_active and autre_user %}
+
+    {% if autre_profile and autre_profile.photo %}
+      <img src="{{ autre_profile.photo.url }}" alt="" class="rdv-avatar">
+    {% else %}
+      <div class="rdv-avatar-initiale">{{ autre_profile.nom_artiste|default:autre_user.username|slice:":1"|upper }}</div>
+    {% endif %}
+
+    <p class="rdv-nom">{{ autre_profile.nom_artiste|default:autre_user.username }}</p>
+    {% if autre_profile and autre_profile.village %}
+    <p class="rdv-village">📍 {{ autre_profile.village }}</p>
+    {% endif %}
+
+    {% if autre_profile %}
+    <div class="rdv-score">
+      <span>Orenda</span>
+      <span class="rdv-score-num">{{ autre_profile.orenda_score }}</span>
+    </div>
+    {% endif %}
+
+    <p class="rdv-section-titre">Actions</p>
+
+    <a href="/p/{{ autre_user.username }}/" class="btn-rdv btn-rdv-profil">Voir le profil</a>
+
+    {% if not vouch_donne %}
+    <button
+      class="btn-rdv btn-rdv-vouch"
+      hx-post="/api/vouch/{{ autre_user.username }}/"
+      hx-swap="none"
+      hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+      hx-on::after-request="window.location.reload()"
+    >✦ Accorder ma confiance</button>
+    {% else %}
+    <div style="font-size:.78rem;color:var(--ink-soft);text-align:center;padding:.3rem 0">
+      ✓ Confiance accordée
+    </div>
+    {% endif %}
+
+    <p class="rdv-section-titre" style="margin-top:.8rem">Réserver un appel</p>
+    <a href="https://cal.com/{{ autre_user.username }}" target="_blank" rel="noopener" class="btn-rdv btn-rdv-cal">
+      📅 Proposer un moment
+    </a>
+
+  {% else %}
+    <div class="msg-rdv-vide">
+      <span style="font-size:1.6rem">✦</span>
+      <p>Les détails du pionnier apparaîtront ici.</p>
+    </div>
+  {% endif %}
+  </aside>
+
 </div>
+{% endblock %}
 
-<p class="messages-hint">
-  Pour écrire à un pionnier : visite <a href="/pionniers/">son profil</a> et clique « Envoyer un message ».
-</p>
+{% block extra_scripts %}
+<script>
+  // Auto-scroll vers le bas du fil
+  const fil = document.getElementById('msg-messages');
+  if (fil) fil.scrollTop = fil.scrollHeight;
 
+  // Textarea auto-resize
+  const ta = document.getElementById('msg-input');
+  if (ta) {
+    ta.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+    // Envoyer avec Ctrl+Entrée ou Cmd+Entrée
+    ta.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('msg-form').submit();
+      }
+    });
+  }
+</script>
 {% endblock %}
