@@ -260,15 +260,23 @@ def profil_public(request, username):
             .select_related("user")
             .order_by("-id")[:4]
         )
-    # Vouches + Orenda
+    # Vouches (garants + témoignages)
     vouches = Vouch.objects.filter(cible=pionnier).select_related("source__profile")[:8]
+    vouches_avec_message = Vouch.objects.filter(
+        cible=pionnier
+    ).exclude(message="").select_related("source__profile")[:5]
     nb_vouches = Vouch.objects.filter(cible=pionnier).count()
     j_ai_vouche = (
         request.user.is_authenticated
         and not est_moi
         and Vouch.objects.filter(source=request.user, cible=pionnier).exists()
     )
-    orenda = profil_obj.orenda_score()
+    # Réponses QDJ publiées
+    reponses_qdj = (
+        ReponseQDJ.objects
+        .filter(user=pionnier, publie=True)
+        .order_by('-created')[:5]
+    )
     return render(request, "profil_public.html", {
         "pionnier": pionnier,
         "profil": profil_obj,
@@ -284,9 +292,10 @@ def profil_public(request, username):
         "hud": profil_obj.hud(),
         "meme_village": meme_village,
         "vouches": vouches,
+        "vouches_avec_message": vouches_avec_message,
         "nb_vouches": nb_vouches,
         "j_ai_vouche": j_ai_vouche,
-        "orenda": orenda,
+        "reponses_qdj": reponses_qdj,
     })
 
 

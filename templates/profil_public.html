@@ -176,6 +176,7 @@
   .village-bio { font-size: .78rem; color: var(--ink-soft); line-height: 1.4; }
 
   /* ── Orenda Score ── */
+  /* .orenda-score-wrap réservé au tableau de bord admin */
   .orenda-score-wrap {
     display: flex; flex-direction: column; align-items: center;
     gap: .15rem; margin: .6rem 0 1rem;
@@ -227,6 +228,67 @@
     border: 2px solid var(--surface); box-shadow: 0 1px 4px rgba(0,0,0,.1);
   }
 
+  /* ── Photo en action ── */
+  .portrait-photo-action-wrap {
+    flex-shrink: 0;
+    margin-top: -1.2rem;
+  }
+  .portrait-photo-action {
+    width: 56px; height: 56px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 3px solid var(--surface);
+    box-shadow: 0 1px 6px rgba(0,0,0,.12);
+    display: block;
+  }
+
+  /* ── Témoignages ── */
+  .temoignage-liste { display: flex; flex-direction: column; gap: .9rem; }
+  .temoignage-bloc {
+    background: var(--bg);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: .8rem 1rem;
+  }
+  .temoignage-texte {
+    font-style: italic; font-size: .9rem; color: var(--ink);
+    margin: 0 0 .5rem; line-height: 1.55;
+  }
+  .temoignage-auteur {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .78rem; color: var(--ink-soft);
+  }
+  .temoignage-auteur img, .temoignage-auteur-defaut {
+    width: 24px; height: 24px; border-radius: 50%; object-fit: cover;
+  }
+  .temoignage-auteur-defaut {
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Fraunces", serif; font-size: .68rem; font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  /* ── Réponses QDJ ── */
+  .qdj-liste { display: flex; flex-direction: column; gap: 1rem; }
+  .qdj-carte {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: .9rem 1rem;
+    background: var(--surface);
+  }
+  .qdj-question {
+    font-size: .78rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .03em; color: var(--ink-soft);
+    margin: 0 0 .4rem;
+  }
+  .qdj-reponse {
+    font-size: .9rem; color: var(--ink); margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
   /* ── Message upload ── */
   .upload-msg {
     font-size: .78rem; color: var(--ink-soft); font-style: italic;
@@ -261,6 +323,11 @@
         <input type="file" id="input-photo" accept="image/jpeg,image/png,image/webp" style="display:none">
       {% endif %}
     </div>
+    {% if profil.photo_action %}
+    <div class="portrait-photo-action-wrap">
+      <img class="portrait-photo-action" src="{{ profil.photo_action.url }}" alt="En action">
+    </div>
+    {% endif %}
     <div class="portrait-ident">
       <h1 class="portrait-nom">{{ profil.nom_artiste|default:pionnier.first_name|default:pionnier.username }}</h1>
       {% if profil.village %}<p class="portrait-lieu">{{ profil.village }}</p>{% endif %}
@@ -360,26 +427,53 @@
       <p style="color:var(--ink-soft);font-size:.9rem;font-style:italic;">Ce pionnier n'a pas encore complété son portrait.</p>
       {% endif %}
 
+      {% if vouches_avec_message %}
+      <div class="portrait-section">
+        <span class="portrait-section-label">Ce qu'on dit de {{ profil.nom_artiste|default:pionnier.first_name|default:"lui" }}</span>
+        <div class="temoignage-liste">
+          {% for v in vouches_avec_message %}
+          <blockquote class="temoignage-bloc">
+            <p class="temoignage-texte">« {{ v.message }} »</p>
+            <div class="temoignage-auteur">
+              {% if v.source.profile.photo %}
+                <img src="{{ v.source.profile.photo.url }}" alt="">
+              {% else %}
+                <div class="temoignage-auteur-defaut">{{ v.source.profile.nom_artiste|default:v.source.first_name|default:v.source.username|first|upper }}</div>
+              {% endif %}
+              <a href="/p/{{ v.source.username }}/" style="color:inherit;text-decoration:none;font-weight:600;">
+                {{ v.source.profile.nom_artiste|default:v.source.first_name|default:v.source.username }}
+              </a>
+              {% if v.source.profile.village %}· {{ v.source.profile.village }}{% endif %}
+            </div>
+          </blockquote>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if reponses_qdj %}
+      <div class="portrait-section">
+        <span class="portrait-section-label">Questions du jour</span>
+        <div class="qdj-liste">
+          {% for rep in reponses_qdj %}
+          <div class="qdj-carte">
+            <p class="qdj-question">{{ rep.question_texte }}</p>
+            <p class="qdj-reponse">{{ rep.extrait }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        <a href="/questions/?user={{ pionnier.username }}" style="display:inline-block;margin-top:.7rem;font-size:.82rem;color:var(--accent);">
+          Voir toutes les réponses →
+        </a>
+      </div>
+      {% endif %}
+
     </div>
 
     <!-- Sidebar -->
     <div class="portrait-sidebar">
       <div class="sidebar-carte">
         <div class="badge-pionnier">Pionnier Néovillage</div>
-        <div class="orenda-score-wrap">
-          <div class="orenda-arc" id="orenda-arc">
-            <svg viewBox="0 0 60 60" class="orenda-svg">
-              <circle cx="30" cy="30" r="24" fill="none" stroke="var(--line)" stroke-width="4"/>
-              <circle cx="30" cy="30" r="24" fill="none" stroke="var(--accent)" stroke-width="4"
-                stroke-dasharray="{% widthratio orenda 100 150.8 %} 150.8"
-                stroke-dashoffset="37.7"
-                stroke-linecap="round"
-                transform="rotate(-90 30 30)"/>
-            </svg>
-            <div class="orenda-chiffre">{{ orenda }}</div>
-          </div>
-          <div class="orenda-label">Score Orenda</div>
-        </div>
         {% if hud.nb_temoignages or hud.nb_qdj or hud.nb_conversations %}
         <div style="display:flex;justify-content:space-around;padding:.5rem 0 .9rem;border-bottom:1px solid var(--line);margin-bottom:.9rem;font-size:.78rem;text-align:center;color:var(--ink-soft);">
           {% if hud.nb_temoignages %}
