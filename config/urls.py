@@ -222,20 +222,43 @@ def rejoindre(request):
         return err2("Nom d'utilisateur : 3 à 30 caractères, lettres, chiffres, tirets et underscores.")
     if len(password) < 10:
         return err2("Le nouveau mot de passe doit avoir au moins 10 caractères.")
+    if User.objects.filter(username=username).exists():
+        return err2("Ce nom d'utilisateur est déjà pris.")
 
-    ok, msg = _nc_creer_utilisateur(username=username, password=password,
+    # Créer le compte Nextcloud avec un mot de passe aléatoire (le pionnier ne le voit jamais)
+    nc_password = secrets.token_urlsafe(32)
+    ok, msg = _nc_creer_utilisateur(username=username, password=nc_password,
                                     display_name=prenom or username, email=email)
     if not ok:
         if "already" in msg.lower() or "exist" in msg.lower():
             return err2("Ce nom d'utilisateur est déjà pris.")
         return err2(f"Erreur lors de la création du compte : {msg}")
 
+    # Marquer le Bidoo utilisé
     entree["utilise"]     = True
     entree["nc_username"] = username
     entree["temp_pass"]   = ""
     _ecrire_json(REGISTRE_BIDOO, registre)
+
+    # Provisionner la voûte via le compte de service
     creer_voute_pioneer(username)
-    return redirect("/oauth/nextcloud/login/")
+
+    # Créer le compte Django et connecter le pionnier directement
+    from profiles.models import UserProfile
+    from profiles.views import notifier_nouveau_pionnier
+    django_user = User.objects.create_user(
+        username=username, email=email,
+        password=password,
+        first_name=prenom or username,
+    )
+    profile, _ = UserProfile.objects.get_or_create(user=django_user)
+    profile.nc_username    = username
+    profile.nc_server      = "atelier.neovillage.org"
+    profile.voute_initialisee = True
+    profile.save()
+    notifier_nouveau_pionnier(django_user)
+    auth_login(request, django_user, backend="django.contrib.auth.backends.ModelBackend")
+    return redirect("/onboarding/?etape=1")
 
 
 # ── OAuth2 Nextcloud ──────────────────────────────────────────────────────────
