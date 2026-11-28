@@ -21,6 +21,12 @@ fi
 echo "==> Clonage dans $RELEASE"
 git clone --depth 1 "$REPO" "$RELEASE"
 
+echo "==> Dossier media persistant"
+MEDIA_DIR="$APP_DIR/data/media"
+mkdir -p "$MEDIA_DIR/photos" "$MEDIA_DIR/bannieres" "$MEDIA_DIR/qdj/videos" "$MEDIA_DIR/qdj/thumbnails"
+chown -R almanak:almanak "$MEDIA_DIR"
+ln -sfn "$MEDIA_DIR" "$RELEASE/media"
+
 echo "==> Installation des dépendances"
 "$VENV/bin/pip" install --quiet -r "$RELEASE/requirements.txt"
 
