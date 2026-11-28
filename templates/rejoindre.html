@@ -114,6 +114,7 @@ hr{border:none;border-top:1px solid #e0d8d0;margin:1.4rem 0}
     <div class="champ">
       <label for="temp_pass">Mot de passe temporaire <span class="label-hint">— reçu avec ton Bidoo</span></label>
       <input type="password" id="temp_pass" name="temp_pass" required autocomplete="off">
+      <span id="temp-pass-hint" style="font-size:.82rem;margin-top:.3rem;display:block"></span>
     </div>
 
     <hr>
@@ -127,8 +128,8 @@ hr{border:none;border-top:1px solid #e0d8d0;margin:1.4rem 0}
 
     <div class="champ">
       <label for="password">Nouveau mot de passe</label>
-      <input type="password" id="password" name="password" minlength="8" required
-             placeholder="8 caractères minimum">
+      <input type="password" id="password" name="password" minlength="10" required
+             placeholder="10 caractères minimum">
     </div>
 
     <div class="champ">
@@ -144,6 +145,42 @@ hr{border:none;border-top:1px solid #e0d8d0;margin:1.4rem 0}
 </div>
 
 <script>
+function getCsrf() {
+  const m = document.cookie.match(/csrftoken=([^;]+)/);
+  return m ? m[1] : '';
+}
+
+(function() {
+  const inp = document.getElementById('temp_pass');
+  const hint = document.getElementById('temp-pass-hint');
+  if (!inp || !hint) return;
+  let timer = null;
+  inp.addEventListener('input', function() {
+    clearTimeout(timer);
+    hint.textContent = '';
+    if (this.value.length < 6) return;
+    timer = setTimeout(() => {
+      const bidooNum = parseInt(document.querySelector('[name="bidoo_num"]').value || '0');
+      fetch('/rejoindre/verifier-temp-pass/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrf()},
+        body: JSON.stringify({bidoo_num: bidooNum, temp_pass: inp.value.trim()}),
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok) {
+          hint.textContent = '✓ Mot de passe temporaire valide';
+          hint.style.color = '#2e6b35';
+        } else if (inp.value.trim().length >= 8) {
+          hint.textContent = '✗ Mot de passe temporaire incorrect';
+          hint.style.color = '#8b1a1a';
+        }
+      })
+      .catch(() => {});
+    }, 400);
+  });
+})();
+
 const GLYPHES = ['∅','|','∧','✕','⊏','⋈'];
 const sel = [null,null,null,null,null,null];
 

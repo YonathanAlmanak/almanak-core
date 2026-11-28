@@ -220,8 +220,8 @@ def rejoindre(request):
         return err2("Mot de passe temporaire incorrect.")
     if not re.match(r"^[a-zA-Z0-9_\-]{3,30}$", username):
         return err2("Nom d'utilisateur : 3 à 30 caractères, lettres, chiffres, tirets et underscores.")
-    if len(password) < 8:
-        return err2("Le nouveau mot de passe doit avoir au moins 8 caractères.")
+    if len(password) < 10:
+        return err2("Le nouveau mot de passe doit avoir au moins 10 caractères.")
 
     ok, msg = _nc_creer_utilisateur(username=username, password=password,
                                     display_name=prenom or username, email=email)
@@ -430,6 +430,23 @@ def api_question_repondre(request):
     return JsonResponse({"ok": True})
 
 
+@require_http_methods(["POST"])
+def api_verifier_temp_pass(request):
+    try:
+        body = json.loads(request.body)
+        bidoo_num = int(body.get("bidoo_num", 0))
+        temp_pass = body.get("temp_pass", "").strip()
+    except Exception:
+        return JsonResponse({"ok": False})
+    if not temp_pass or not REGISTRE_BIDOO.exists():
+        return JsonResponse({"ok": False})
+    registre = _lire_json(REGISTRE_BIDOO, {"emis": []})
+    entree = next((b for b in registre.get("emis", []) if int(b["virga"]) == bidoo_num), None)
+    if not entree or entree.get("utilise"):
+        return JsonResponse({"ok": False})
+    return JsonResponse({"ok": entree.get("temp_pass", "") == temp_pass})
+
+
 # ── Admin Bidoo ───────────────────────────────────────────────────────────────
 
 GLYPHES_BIDOO = ['∅', '|', '∧', '✕', '⊏', '⋈']
@@ -523,6 +540,7 @@ urlpatterns = [
     path("admin-bidoo/", admin_bidoo, name="admin_bidoo"),
     path("", home, name="home"),
     path("rejoindre/", rejoindre, name="rejoindre"),
+    path("rejoindre/verifier-temp-pass/", api_verifier_temp_pass),
     path("connexion/", auth_views.LoginView.as_view(
         template_name="connexion.html",
         redirect_authenticated_user=True,

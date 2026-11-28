@@ -98,7 +98,7 @@ MEDIA_ROOT = Path(os.environ.get('MEDIA_ROOT', str(BASE_DIR / 'media')))
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_REDIRECT_URL = '/profil/'
+LOGIN_REDIRECT_URL = '/oauth/nextcloud/login/'
 LOGOUT_REDIRECT_URL = '/connexion/'
 LOGIN_URL = '/connexion/'
 
