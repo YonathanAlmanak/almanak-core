@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% block title %}Mix N Match — Almanak{% endblock %}
+
+{% block extra_head %}
+<style>
+  :root { --keep: #2a7a3b; --pass: #888; }
+
+  .mixer-wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .mixer-entete {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .mixer-titre {
+    font-family: "Fraunces", serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 .3rem;
+  }
+  .mixer-sous-titre {
+    font-size: .85rem;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  /* Carte pionnier */
+  .mixer-carte {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,.08);
+    margin-bottom: 1.5rem;
+  }
+
+  .mixer-banniere {
+    width: 100%; height: 160px;
+    object-fit: cover;
+    display: block;
+    background: linear-gradient(135deg, #2a4a30 0%, #8aab72 100%);
+  }
+
+  .mixer-corps {
+    padding: 1.4rem 1.5rem 1.6rem;
+  }
+
+  .mixer-avatar-wrap {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-top: -2.5rem;
+    margin-bottom: 1rem;
+  }
+  .mixer-avatar {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--surface);
+    box-shadow: 0 2px 10px rgba(0,0,0,.12);
+  }
+  .mixer-avatar-defaut {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Fraunces", serif;
+    font-size: 2rem; font-weight: 600;
+    border: 4px solid var(--surface);
+    flex-shrink: 0;
+  }
+  .mixer-village {
+    font-size: .82rem; color: var(--ink-soft);
+    padding-bottom: .2rem;
+  }
+  .mixer-village::before { content: "📍 "; }
+
+  .mixer-nom {
+    font-family: "Fraunces", serif;
+    font-size: 1.5rem; font-weight: 600;
+    margin: 0 0 .15rem;
+  }
+  .mixer-offre {
+    font-size: .9rem; color: var(--ink-soft);
+    margin: 0 0 .9rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .mixer-tags {
+    display: flex; flex-wrap: wrap; gap: .35rem;
+    margin-bottom: 1rem;
+  }
+  .mixer-tag {
+    background: var(--accent-soft); color: var(--accent);
+    border-radius: 999px; padding: .22rem .7rem;
+    font-size: .74rem; font-weight: 500;
+  }
+  .mixer-tag--role {
+    background: #e8f0e9; color: #2a4a30;
+  }
+
+  .mixer-accroche {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: .75rem 1rem;
+    font-style: italic; font-size: .9rem;
+    color: var(--ink); margin-bottom: .6rem;
+  }
+
+  /* Boutons Keep/Pass */
+  .mixer-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .9rem;
+  }
+  .btn-pass {
+    padding: .9rem;
+    background: transparent;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 1rem; font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+  .btn-pass:hover { background: var(--bg); border-color: #bbb; color: var(--ink); }
+
+  .btn-keep {
+    padding: .9rem;
+    background: var(--keep);
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 1rem; font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-keep:hover { background: #22633a; }
+
+  /* Fin de file */
+  .mixer-fin {
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+  .mixer-fin-icone { font-size: 2.5rem; margin-bottom: .8rem; }
+  .mixer-fin h2 {
+    font-family: "Fraunces", serif;
+    font-size: 1.3rem; margin: 0 0 .5rem;
+  }
+  .mixer-fin p {
+    color: var(--ink-soft); font-size: .9rem;
+    margin: 0 0 1.4rem;
+  }
+  .btn-reset {
+    display: inline-block;
+    padding: .6rem 1.4rem;
+    background: var(--accent); color: #fff;
+    border-radius: 8px; font-weight: 600;
+    font-size: .9rem; text-decoration: none;
+    border: none; cursor: pointer; font-family: inherit;
+  }
+  .btn-reset:hover { background: #2f4c35; }
+
+  .mixer-compteur {
+    text-align: center;
+    font-size: .78rem; color: var(--ink-soft);
+    margin-bottom: 1.2rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mixer-wrap">
+
+  <div class="mixer-entete">
+    <h1 class="mixer-titre">Mix N Match</h1>
+    <p class="mixer-sous-titre">Découvre des pionniers — garde ceux qui t'inspirent.</p>
+  </div>
+
+  {% if cible %}
+
+  <p class="mixer-compteur">{{ nb_restants }} pionnier{% if nb_restants != 1 %}s{% endif %} à découvrir</p>
+
+  <div class="mixer-carte">
+    {% if cible.photo_banniere %}
+      <img class="mixer-banniere" src="{{ cible.photo_banniere.url }}" alt="">
+    {% else %}
+      <div class="mixer-banniere"></div>
+    {% endif %}
+
+    <div class="mixer-corps">
+      <div class="mixer-avatar-wrap">
+        {% if cible.photo %}
+          <img class="mixer-avatar" src="{{ cible.photo.url }}" alt="">
+        {% else %}
+          <div class="mixer-avatar-defaut">
+            {{ cible.nom_artiste|default:cible.user.first_name|default:cible.user.username|first|upper }}
+          </div>
+        {% endif %}
+        {% if cible.village %}
+        <p class="mixer-village">{{ cible.village }}</p>
+        {% endif %}
+      </div>
+
+      <h2 class="mixer-nom">{{ cible.nom_artiste|default:cible.user.first_name|default:cible.user.username }}</h2>
+
+      {% if cible.offre_culturelle %}
+      <p class="mixer-offre">{{ cible.offre_culturelle }}</p>
+      {% elif cible.bio_courte %}
+      <p class="mixer-offre">{{ cible.bio_courte }}</p>
+      {% endif %}
+
+      {% if cible.casquettes_liste or cible.specialites_liste %}
+      <div class="mixer-tags">
+        {% for t in cible.casquettes_liste %}
+        <span class="mixer-tag mixer-tag--role">{{ t }}</span>
+        {% endfor %}
+        {% for t in cible.specialites_liste %}
+        <span class="mixer-tag">{{ t }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if carte_intro %}
+      <div class="mixer-accroche">{{ carte_intro }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <form method="post" action="/mixer/">
+    {% csrf_token %}
+    <input type="hidden" name="username" value="{{ cible.user.username }}">
+    <div class="mixer-actions">
+      <button type="submit" name="action" value="pass" class="btn-pass">↩ Passer</button>
+      <button type="submit" name="action" value="keep" class="btn-keep">✦ Garder →</button>
+    </div>
+  </form>
+
+  <p style="text-align:center;margin-top:1.2rem;">
+    <a href="/p/{{ cible.user.username }}/" style="font-size:.82rem;color:var(--ink-soft);">
+      Voir le profil complet →
+    </a>
+  </p>
+
+  {% else %}
+
+  <div class="mixer-fin">
+    <div class="mixer-fin-icone">✦</div>
+    <h2>Tu as tout découvert !</h2>
+    <p>Tu as vu tous les pionniers du réseau{% if nb_passes %} ({{ nb_passes }} passés){% endif %}.<br>
+       Recommence depuis le début pour en rencontrer à nouveau.</p>
+    <form method="post" action="/mixer/">
+      {% csrf_token %}
+      <button type="submit" name="action" value="reset" class="btn-reset">Recommencer</button>
+    </form>
+  </div>
+
+  {% endif %}
+
+</div>
+{% endblock %}

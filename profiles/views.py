@@ -594,6 +594,59 @@ def pionniers(request):
 
 
 @login_required
+def mixer(request):
+    mon_profil = _profil(request.user)
+    passes = set(request.session.get('mixer_passes', []))
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '')
+        username = request.POST.get('username', '')
+        if action in ('pass', 'keep'):
+            passes.add(username)
+            request.session['mixer_passes'] = list(passes)
+        if action == 'keep' and username:
+            return redirect(f'/messages/{username}/')
+        if action == 'reset':
+            request.session['mixer_passes'] = []
+        return redirect('/mixer/')
+
+    vouches_donnes = set(
+        Vouch.objects.filter(source=request.user).values_list('cible__username', flat=True)
+    )
+    exclus = {request.user.username} | vouches_donnes | passes
+
+    candidats = (
+        UserProfile.objects
+        .exclude(user__username__in=exclus)
+        .filter(onboarding_etape__gte=1)
+        .select_related('user')
+        .order_by('-id')
+    )
+
+    # Même village en premier
+    cible = None
+    if mon_profil.village:
+        cible = candidats.filter(village__iexact=mon_profil.village).first()
+    if not cible:
+        cible = candidats.first()
+
+    nb_restants = candidats.count()
+    carte_intro = None
+    if cible:
+        try:
+            carte_intro = _carte_intro(mon_profil, cible)
+        except Exception:
+            pass
+
+    return render(request, 'mixer.html', {
+        'cible': cible,
+        'nb_restants': nb_restants,
+        'carte_intro': carte_intro,
+        'nb_passes': len(passes),
+    })
+
+
+@login_required
 def voutes(request):
     profile = _profil(request.user)
     return render(request, "voutes.html", {"profile": profile})

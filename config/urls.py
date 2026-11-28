@@ -20,7 +20,7 @@ from django.conf.urls.static import static
 from config.nextcloud import creer_voute_pioneer
 from profiles.views import (
     profil, voutes, reglages, onboarding, profil_public,
-    pionniers, messages, conversation, api_envoyer_message,
+    pionniers, mixer, messages, conversation, api_envoyer_message,
     questions, repondre_qdj,
     notifications, api_notifs_lues,
     api_vouch, api_unvouch,
@@ -477,6 +477,7 @@ urlpatterns = [
     path("profil/", profil, name="profil"),
     path("onboarding/", onboarding, name="onboarding"),
     path("pionniers/", pionniers, name="pionniers"),
+    path("mixer/", mixer, name="mixer"),
     path("messages/", messages, name="messages"),
     path("messages/<str:username>/", conversation, name="conversation"),
     path("api/messages/<str:username>/envoyer/", api_envoyer_message),
