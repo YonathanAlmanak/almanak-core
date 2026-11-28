@@ -1,4 +1,3 @@
-import base64
 import json
 import re
 import secrets
@@ -25,20 +24,18 @@ from profiles.views import (
     questions, repondre_qdj,
     notifications, api_notifs_lues,
     api_vouch, api_unvouch,
-    api_photo_upload, api_banniere_upload,
+    api_photo_upload, api_photo_action_upload, api_banniere_upload,
 )
 
 DATA             = Path("/opt/almanak/data")
 APPROUVES        = DATA / "evenements.json"
 BRUTS            = DATA / "evenements_bruts.json"
 TOKEN_FILE       = DATA / ".admin_token"
-OAUTH_CREDS      = DATA / ".oauth2_almanak.json"
 REGISTRE_BIDOO   = DATA / "registre_bidoo.json"
 NC_BOT_CREDS     = DATA / ".nc_bot_creds"
 BABILLARD_FILE   = DATA / "babillard.json"
 QDJ_FILE         = DATA / "question_du_jour.json"
 NEXTCLOUD_BASE   = "https://atelier.neovillage.org"
-ALMANAK_CALLBACK = "https://almanak.neovillage.org/oauth/nextcloud/callback/"
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -65,38 +62,12 @@ def _verifier_token(request):
     return token_attendu and token_recu == token_attendu
 
 
-def _creds_oauth():
-    if OAUTH_CREDS.exists():
-        return json.loads(OAUTH_CREDS.read_text(encoding="utf-8"))
-    return {}
-
-
 def _nc_bot_auth():
     if NC_BOT_CREDS.exists():
         parts = NC_BOT_CREDS.read_text(encoding="utf-8").strip().split(":", 1)
         if len(parts) == 2:
             return parts[0], parts[1]
     return None, None
-
-
-VOUTE_STRUCTURE = ["1-Inbox", "2-Projects", "3-Casquettes", "4-Resources", "5-Archives"]
-
-
-def _nc_init_voute(username, password):
-    """Crée la structure de dossiers standard dans la voûte Nextcloud du pionnier."""
-    creds_b64 = base64.b64encode(f"{username}:{password}".encode()).decode()
-    headers = {"Authorization": f"Basic {creds_b64}"}
-    for dossier in VOUTE_STRUCTURE:
-        url = (
-            f"{NEXTCLOUD_BASE}/remote.php/dav/files/"
-            f"{urllib.parse.quote(username, safe='')}/"
-            f"{urllib.parse.quote(dossier, safe='')}"
-        )
-        req = urllib.request.Request(url, method="MKCOL", headers=headers)
-        try:
-            urllib.request.urlopen(req, timeout=10)
-        except Exception:
-            pass  # 405 = existe déjà, autre erreur = non fatale
 
 
 def _nc_creer_utilisateur(username, password, display_name="", email=""):
@@ -259,72 +230,6 @@ def rejoindre(request):
     notifier_nouveau_pionnier(django_user)
     auth_login(request, django_user, backend="django.contrib.auth.backends.ModelBackend")
     return redirect("/onboarding/?etape=1")
-
-
-# ── OAuth2 Nextcloud ──────────────────────────────────────────────────────────
-
-def oauth_nextcloud_login(request):
-    creds = _creds_oauth()
-    state = secrets.token_urlsafe(16)
-    request.session["oauth_state"] = state
-    params = urllib.parse.urlencode({
-        "response_type": "code",
-        "client_id": creds.get("clientId", ""),
-        "redirect_uri": ALMANAK_CALLBACK,
-        "state": state,
-    })
-    return redirect(f"{NEXTCLOUD_BASE}/apps/oauth2/authorize?{params}")
-
-
-def oauth_nextcloud_callback(request):
-    code  = request.GET.get("code", "")
-    state = request.GET.get("state", "")
-    if not code or state != request.session.get("oauth_state", ""):
-        return HttpResponse("Connexion invalide. <a href='/'>Retour</a>", status=400)
-    creds = _creds_oauth()
-    try:
-        data = urllib.parse.urlencode({
-            "grant_type": "authorization_code", "code": code,
-            "redirect_uri": ALMANAK_CALLBACK,
-            "client_id": creds["clientId"], "client_secret": creds["clientSecret"],
-        }).encode()
-        req = urllib.request.Request(f"{NEXTCLOUD_BASE}/apps/oauth2/api/v1/token",
-                                     data=data, method="POST")
-        with urllib.request.urlopen(req, timeout=10) as r:
-            token_data = json.loads(r.read().decode())
-    except Exception as e:
-        return HttpResponse(f"Erreur connexion ({e}). <a href='/'>Retour</a>", status=500)
-    access_token = token_data.get("access_token", "")
-    if not access_token:
-        return HttpResponse("Token manquant. <a href='/'>Retour</a>", status=500)
-    try:
-        req = urllib.request.Request(
-            f"{NEXTCLOUD_BASE}/ocs/v2.php/cloud/user?format=json",
-            headers={"Authorization": f"Bearer {access_token}", "OCS-APIRequest": "true"})
-        with urllib.request.urlopen(req, timeout=10) as r:
-            user_data = json.loads(r.read().decode())["ocs"]["data"]
-    except Exception as e:
-        return HttpResponse(f"Erreur profil ({e}). <a href='/'>Retour</a>", status=500)
-    username     = user_data.get("id", "")
-    email        = user_data.get("email", "") or ""
-    display_name = user_data.get("display-name", username) or username
-    if not username:
-        return HttpResponse("Identifiant Nextcloud manquant. <a href='/'>Retour</a>", status=500)
-    from profiles.models import UserProfile
-    from profiles.views import notifier_nouveau_pionnier
-    user, created = User.objects.get_or_create(username=username,
-                                               defaults={"email": email, "first_name": display_name})
-    profile, _ = UserProfile.objects.get_or_create(user=user)
-    if not profile.nc_username:
-        profile.nc_username = username
-    if not profile.voute_initialisee:
-        creer_voute_pioneer(username)
-        profile.voute_initialisee = True
-    profile.save()
-    if created:
-        notifier_nouveau_pionnier(user)
-    auth_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-    return redirect("/profil/")
 
 
 # ── API événements ────────────────────────────────────────────────────────────
@@ -585,10 +490,8 @@ urlpatterns = [
     path("voutes/", voutes, name="voutes"),
     path("reglages/", reglages, name="reglages"),
     path("api/profil/photo/", api_photo_upload),
+    path("api/profil/photo-action/", api_photo_action_upload),
     path("api/profil/banniere/", api_banniere_upload),
-    # OAuth2
-    path("oauth/nextcloud/login/", oauth_nextcloud_login, name="oauth_nextcloud_login"),
-    path("oauth/nextcloud/callback/", oauth_nextcloud_callback, name="oauth_nextcloud_callback"),
     # API événements
     path("api/evenements/", api_evenements),
     path("api/evenements/bruts/", api_evenements_bruts),

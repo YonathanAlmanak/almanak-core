@@ -42,7 +42,14 @@ class UserProfile(models.Model):
     nc_externe_url = models.CharField(max_length=255, blank=True)
     nc_externe_token = models.CharField(max_length=500, blank=True)  # Application Password NC
 
-    # Profil "agence d'artistes" — champ privé (jamais affiché publiquement)
+    # Profil "agence d'artistes" — champs publics (vitrine /p/<username>/)
+    photo_action = models.ImageField(upload_to='photos/action/', blank=True)
+    casquettes = models.TextField(blank=True)    # CSV : "Artiste, Entrepreneur, Père"
+    specialites = models.TextField(blank=True)   # CSV : "Guitare, Menuiserie, Marketing"
+    engagements = models.JSONField(default=list, blank=True)  # [{nom, type}]
+    liens = models.JSONField(default=list, blank=True)        # [{type, label, url}]
+
+    # Champ privé (jamais affiché publiquement)
     saboteur = models.TextField(blank=True)
 
     def pourcentage_profil(self):
@@ -52,6 +59,25 @@ class UserProfile(models.Model):
         if self.photo:
             remplis += 1
         return int(remplis / 8 * 100)
+
+    def hud(self):
+        """Indicateurs de présence réelle pour le HUD du profil."""
+        from profiles.models import Vouch, ReponseQDJ, Conversation
+        from django.db.models import Q
+        return {
+            'orenda': self.orenda_score(),
+            'nb_temoignages': Vouch.objects.filter(cible=self.user).count(),
+            'nb_qdj': ReponseQDJ.objects.filter(user=self.user, publie=True).count(),
+            'nb_conversations': Conversation.objects.filter(
+                Q(user1=self.user) | Q(user2=self.user)
+            ).count(),
+        }
+
+    def casquettes_liste(self):
+        return [t.strip() for t in self.casquettes.split(',') if t.strip()]
+
+    def specialites_liste(self):
+        return [t.strip() for t in self.specialites.split(',') if t.strip()]
 
     def orenda_score(self):
         """Score de confiance v0.1 : présence (20) + profil (30) + vouches reçus (50)."""

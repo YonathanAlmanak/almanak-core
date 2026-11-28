@@ -277,6 +277,17 @@
       <div class="portrait-accroche">{{ profil.offre_culturelle }}</div>
       {% endif %}
 
+      {% if casquettes_tags or specialites_tags %}
+      <div class="portrait-tags" style="margin-bottom:1.8rem;">
+        {% for tag in casquettes_tags %}
+        <span class="portrait-tag" style="background:#e8f0e9;color:#2a4a30;">{{ tag }}</span>
+        {% endfor %}
+        {% for tag in specialites_tags %}
+        <span class="portrait-tag">{{ tag }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
       {% if profil.bio_courte or profil.experience or profil.passions %}
       <div class="portrait-section">
         <span class="portrait-section-label">À propos</span>
@@ -320,7 +331,32 @@
       </div>
       {% endif %}
 
-      {% if not profil.bio_courte and not profil.passions and not profil.experience and not profil.offre_culturelle and not profil.relations_cherchees %}
+      {% if engagements %}
+      <div class="portrait-section">
+        <span class="portrait-section-label">Engagements récents</span>
+        <div class="portrait-tags">
+          {% for eng in engagements %}
+          <span class="portrait-tag" style="background:var(--bg);">{{ eng.nom }}{% if eng.type %} · <em>{{ eng.type }}</em>{% endif %}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if liens %}
+      <div class="portrait-section">
+        <span class="portrait-section-label">Liens</span>
+        <div style="display:flex;flex-wrap:wrap;gap:.6rem;">
+          {% for lien in liens %}
+          <a href="{{ lien.url }}" target="_blank" rel="noopener" class="btn-portrait-secondaire" style="width:auto;padding:.45rem .9rem;font-size:.82rem;">
+            {% if lien.type == "video" %}🎬{% elif lien.type == "balado" %}🎙{% else %}🔗{% endif %}
+            {{ lien.label|default:lien.url|truncatechars:30 }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if not profil.bio_courte and not profil.passions and not profil.experience and not profil.offre_culturelle and not profil.relations_cherchees and not casquettes_tags and not specialites_tags %}
       <p style="color:var(--ink-soft);font-size:.9rem;font-style:italic;">Ce pionnier n'a pas encore complété son portrait.</p>
       {% endif %}
 
@@ -344,6 +380,19 @@
           </div>
           <div class="orenda-label">Score Orenda</div>
         </div>
+        {% if hud.nb_temoignages or hud.nb_qdj or hud.nb_conversations %}
+        <div style="display:flex;justify-content:space-around;padding:.5rem 0 .9rem;border-bottom:1px solid var(--line);margin-bottom:.9rem;font-size:.78rem;text-align:center;color:var(--ink-soft);">
+          {% if hud.nb_temoignages %}
+          <div><strong style="color:var(--ink);font-size:1rem;">{{ hud.nb_temoignages }}</strong><br>témoignages</div>
+          {% endif %}
+          {% if hud.nb_qdj %}
+          <div><strong style="color:var(--ink);font-size:1rem;">{{ hud.nb_qdj }}</strong><br>réponses QDJ</div>
+          {% endif %}
+          {% if hud.nb_conversations %}
+          <div><strong style="color:var(--ink);font-size:1rem;">{{ hud.nb_conversations }}</strong><br>conversations</div>
+          {% endif %}
+        </div>
+        {% endif %}
         <div class="sidebar-actions">
           {% if est_moi %}
             <a href="/profil/" class="btn-portrait-primaire">Mon tableau de bord</a>

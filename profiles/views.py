@@ -247,6 +247,9 @@ def profil_public(request, username):
     if profil_obj.passions:
         raw = profil_obj.passions.strip()
         passions_tags = [t.strip() for t in _re.split(r'[,\n]', raw) if t.strip()][:10]
+
+    casquettes_tags = profil_obj.casquettes_liste()
+    specialites_tags = profil_obj.specialites_liste()
     # Autres pionniers du même village
     meme_village = []
     if profil_obj.village:
@@ -274,6 +277,11 @@ def profil_public(request, username):
         "talk_salon": talk_salon,
         "talk_dm": talk_dm,
         "passions_tags": passions_tags,
+        "casquettes_tags": casquettes_tags,
+        "specialites_tags": specialites_tags,
+        "engagements": profil_obj.engagements or [],
+        "liens": profil_obj.liens or [],
+        "hud": profil_obj.hud(),
         "meme_village": meme_village,
         "vouches": vouches,
         "nb_vouches": nb_vouches,
@@ -308,6 +316,24 @@ def api_photo_upload(request):
         return JsonResponse({"erreur": f"Erreur lors de la sauvegarde : {e}"}, status=500)
 
     return JsonResponse({"ok": True, "url": profile.photo.url})
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_photo_action_upload(request):
+    if "photo_action" not in request.FILES:
+        return JsonResponse({"erreur": "Aucune photo"}, status=400)
+    fichier = request.FILES["photo_action"]
+    if fichier.content_type not in {"image/jpeg", "image/png", "image/webp"}:
+        return JsonResponse({"erreur": "Format non accepté (JPEG, PNG ou WebP)"}, status=400)
+    if fichier.size > 5 * 1024 * 1024:
+        return JsonResponse({"erreur": "Photo trop lourde (5 Mo max)"}, status=400)
+    profile = _profil(request.user)
+    if profile.photo_action:
+        profile.photo_action.delete(save=False)
+    profile.photo_action = fichier
+    profile.save()
+    return JsonResponse({"ok": True, "url": profile.photo_action.url})
 
 
 @login_required
@@ -627,6 +653,22 @@ def reglages(request):
                     profile.save()
             flash.success(request, "Voûte externe enregistrée.")
             return redirect("/reglages/?section=ma_voute")
+
+        elif section == "agence":
+            import json as _json
+            profile.casquettes = request.POST.get("casquettes", "").strip()[:300]
+            profile.specialites = request.POST.get("specialites", "").strip()[:300]
+            try:
+                profile.engagements = _json.loads(request.POST.get("engagements", "[]"))
+            except Exception:
+                profile.engagements = []
+            try:
+                profile.liens = _json.loads(request.POST.get("liens", "[]"))
+            except Exception:
+                profile.liens = []
+            profile.save()
+            flash.success(request, "Profil d'artiste enregistré.")
+            return redirect("/reglages/?section=agence")
 
         elif section == "widgets":
             tous_widgets = ['qdj', 'babillard', 'sur-la-table', 'nouvelles', 'salon-talk', 'voute', 'pionniers', 'agenda']

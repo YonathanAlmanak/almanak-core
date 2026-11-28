@@ -149,8 +149,8 @@
   <!-- Navigation latérale -->
   <nav class="reglages-nav" aria-label="Sections des réglages">
     <a href="/reglages/?section=ma_voute" class="reglages-nav-item {% if section_active == 'ma_voute' %}active{% endif %}">Ma voûte</a>
+    <a href="/reglages/?section=agence" class="reglages-nav-item {% if section_active == 'agence' %}active{% endif %}">Profil d'artiste</a>
     <a href="/reglages/?section=widgets" class="reglages-nav-item {% if section_active == 'widgets' %}active{% endif %}">Mes widgets</a>
-    <span class="reglages-nav-item" style="opacity:.5;cursor:default">Profil public</span>
     <a href="/reglages/?section=motdepasse" class="reglages-nav-item {% if section_active == 'motdepasse' %}active{% endif %}">Mot de passe</a>
   </nav>
 
@@ -194,6 +194,66 @@
 
       <button type="submit" class="btn-primary">Enregistrer</button>
     </form>
+  </div>
+  {% endif %}
+
+  <!-- Panneau Profil d'artiste -->
+  {% if section_active == 'agence' %}
+  <div class="reglages-panel">
+    <h2 class="panel-title">Profil d'artiste</h2>
+    <p style="color:var(--ink-soft);font-size:.88rem;margin-bottom:1.5rem">
+      Ces informations enrichissent ta fiche sur <a href="/p/{{ profile.user.username }}/" style="color:var(--accent)">ta page publique</a>.
+      Casquettes et spécialités : valeurs séparées par des virgules.
+    </p>
+
+    <form method="post" action="/reglages/?section=agence">
+      {% csrf_token %}
+      <input type="hidden" name="section" value="agence">
+
+      <div class="form-row">
+        <label class="form-label" for="id_casquettes">Casquettes (rôles)</label>
+        <input class="form-input" type="text" name="casquettes" id="id_casquettes"
+               value="{{ profile.casquettes }}"
+               placeholder="Artiste, Entrepreneur, Père, Mentor…">
+        <span class="form-hint">Tes rôles principaux — ce que tu es, pas ce que tu fais.</span>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label" for="id_specialites">Spécialités (savoir-faire)</label>
+        <input class="form-input" type="text" name="specialites" id="id_specialites"
+               value="{{ profile.specialites }}"
+               placeholder="Guitare, Menuiserie, Marketing territorial…">
+        <span class="form-hint">Tes compétences précises et maîtrisées.</span>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Engagements récents <span style="font-weight:400;opacity:.7">(JSON)</span></label>
+        <textarea class="form-input" name="engagements" rows="3"
+                  placeholder='[{"nom": "Festival Mémoire et Racines", "type": "animation"}]'
+                  style="font-family:monospace;font-size:.82rem;">{{ profile.engagements|default:"[]" }}</textarea>
+        <span class="form-hint">Liste de lieux ou événements récents. Format JSON.</span>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Liens <span style="font-weight:400;opacity:.7">(JSON)</span></label>
+        <textarea class="form-input" name="liens" rows="3"
+                  placeholder='[{"type": "site", "label": "Mon site", "url": "https://…"}]'
+                  style="font-family:monospace;font-size:.82rem;">{{ profile.liens|default:"[]" }}</textarea>
+        <span class="form-hint">Types : site, video, balado. Format JSON.</span>
+      </div>
+
+      <button type="submit" class="btn-primary">Enregistrer</button>
+    </form>
+
+    <hr style="margin:1.6rem 0;border:none;border-top:1px solid var(--line);">
+    <p style="font-size:.82rem;font-weight:600;margin-bottom:.6rem;">Photo en action</p>
+    <p style="color:var(--ink-soft);font-size:.82rem;margin-bottom:.8rem">Une 3e photo qui te montre dans ton atelier ou sur le terrain.</p>
+    {% if profile.photo_action %}
+    <img src="{{ profile.photo_action.url }}" style="width:120px;height:120px;object-fit:cover;border-radius:8px;margin-bottom:.6rem;" alt="">
+    {% endif %}
+    <input type="file" id="input-photo-action" accept="image/jpeg,image/png,image/webp" style="display:block;margin-bottom:.4rem;">
+    <button class="btn-primary" onclick="uploadPhotoAction()">Téléverser</button>
+    <p class="upload-msg" id="msg-photo-action" style="font-size:.78rem;color:var(--ink-soft);font-style:italic;margin-top:.4rem;"></p>
   </div>
   {% endif %}
 
@@ -300,4 +360,22 @@
   {% endif %}
 
 </div>
+
+<script>
+function getCsrf() {
+  return document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('csrftoken='))?.split('=')[1] || '';
+}
+async function uploadPhotoAction() {
+  const input = document.getElementById('input-photo-action');
+  const msg = document.getElementById('msg-photo-action');
+  if (!input || !input.files[0]) { if (msg) msg.textContent = 'Choisis une photo.'; return; }
+  const fd = new FormData();
+  fd.append('photo_action', input.files[0]);
+  if (msg) msg.textContent = 'Envoi en cours…';
+  const r = await fetch('/api/profil/photo-action/', { method: 'POST', headers: {'X-CSRFToken': getCsrf()}, body: fd });
+  const d = await r.json();
+  if (msg) msg.textContent = d.ok ? 'Photo mise à jour ✓' : (d.erreur || 'Erreur');
+  if (d.ok) setTimeout(() => location.reload(), 1000);
+}
+</script>
 {% endblock %}
