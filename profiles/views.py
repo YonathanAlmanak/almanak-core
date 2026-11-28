@@ -588,15 +588,19 @@ def questions(request):
     if prochaine is None:
         prochaine = QUESTIONS_QDJ[0]
 
-    q_active = request.GET.get('q')
+    q_active  = request.GET.get('q')
+    u_active  = request.GET.get('user')
     if q_active:
         reponses = reponses.filter(question_id=q_active)
+    if u_active:
+        reponses = reponses.filter(user__username=u_active)
 
     return render(request, 'questions.html', {
         'reponses': reponses,
         'prochaine_question': prochaine,
         'toutes_questions': QUESTIONS_QDJ,
         'q_active': q_active,
+        'u_active': u_active,
     })
 
 

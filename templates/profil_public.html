@@ -349,17 +349,14 @@
             <a href="/profil/" class="btn-portrait-primaire">Mon tableau de bord</a>
             <a href="/onboarding/" class="btn-portrait-secondaire">Modifier mon portrait</a>
           {% elif est_connecte %}
-            {% if talk_dm %}
-            <a href="{{ talk_dm }}" target="_blank" rel="noopener" class="btn-portrait-primaire">💬 Envoyer un message</a>
-            {% else %}
-            <a href="{{ talk_salon }}" target="_blank" rel="noopener" class="btn-portrait-primaire">💬 Salon du groupe</a>
-            {% endif %}
+            <a href="/messages/{{ pionnier.username }}/" class="btn-portrait-primaire">💬 Envoyer un message</a>
             <button class="btn-vouch {% if j_ai_vouche %}btn-vouch--actif{% endif %}"
                     id="btn-vouch"
                     onclick="toggleVouch()">
               <span id="vouch-texte">{% if j_ai_vouche %}✓ Tu as vouchi{% else %}✦ Vouch{% endif %}</span>
             </button>
           {% endif %}
+          <a href="/questions/?user={{ pionnier.username }}" class="btn-portrait-secondaire">✦ Questions du jour</a>
           <button class="btn-portrait-secondaire" onclick="partager()">↑ Partager</button>
         </div>
         {% if est_moi %}

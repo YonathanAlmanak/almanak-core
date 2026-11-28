@@ -566,7 +566,7 @@
       <span class="qdj-card-mini-r">{{ rep.extrait|truncatechars:90 }}</span>
     </a>
     {% endfor %}
-    <a href="/questions/{{ autre_user.username }}/" class="btn-rdv btn-rdv-cal" style="margin-top:.4rem">
+    <a href="/questions/?user={{ autre_user.username }}" class="btn-rdv btn-rdv-cal" style="margin-top:.4rem">
       Toutes ses réponses →
     </a>
     {% else %}
